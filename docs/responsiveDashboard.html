@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom Noise Texture */
+        .bg-noise {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+        
+        /* Animations */
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-[#0f1014] text-white h-screen flex overflow-hidden selection:bg-orange-500 selection:text-white">
+
+    <!-- MOBILE SIDEBAR BACKDROP -->
+    <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden opacity-0 transition-opacity duration-300"></div>
+
+    <!-- LEFT SIDEBAR (Responsive Drawer) -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-24 bg-[#13151b] border-r border-white/5 flex flex-col items-center py-6 gap-8 transform -translate-x-full transition-transform duration-300 lg:translate-x-0 lg:static lg:w-20 shadow-2xl lg:shadow-none">
+        
+        <!-- Mobile Close Button -->
+        <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-400 hover:text-white absolute top-2 right-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+
+        <!-- Logo -->
+        <div class="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 cursor-pointer hover:scale-105 transition-transform mt-8 lg:mt-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M4.5 4.5a3 3 0 00-3 3v9a3 3 0 003 3h8.25a3 3 0 003-3v-9a3 3 0 00-3-3H4.5zM19.94 18.75l-2.69-2.69V7.94l2.69-2.69c.94-.94 2.56-.27 2.56 1.06v11.38c0 1.33-1.62 2-2.56 1.06z" />
+            </svg>
+        </div>
+
+        <!-- Nav Items -->
+        <nav class="flex flex-col gap-6 w-full items-center">
+            <button class="p-3 text-blue-500 bg-blue-500/10 rounded-xl transition-all relative group">
+                <div class="absolute left-0 w-1 h-8 bg-blue-500 rounded-r-full -translate-x-4 opacity-100 lg:-translate-x-4 -translate-x-6"></div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+            </button>
+            <button class="p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg></button>
+            <button class="p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></button>
+            <button class="p-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
+        </nav>
+
+        <div class="flex-1"></div>
+        <button class="h-10 w-10 bg-slate-700 rounded-full flex items-center justify-center text-sm font-bold border border-white/10 hover:border-blue-500 transition-colors mb-4 lg:mb-0">T</button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-[500px] bg-blue-900/10 blur-[120px] pointer-events-none"></div>
+
+        <!-- Header -->
+        <header class="flex justify-between items-center px-4 sm:px-8 py-6 z-10">
+            <div class="flex items-center gap-4">
+                <!-- Hamburger Menu (Mobile/Tablet Only) -->
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 tracking-wider uppercase mb-1 hidden sm:block" id="currentDate">Wednesday, Dec 10</p>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Good morning, <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-100 to-blue-400">testa</span></h1>
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="flex gap-2 sm:gap-4">
+                <button class="p-2.5 text-gray-400 bg-white/5 hover:bg-white/10 rounded-full transition-colors hidden sm:flex">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </button>
+                <!-- Show Calendar Toggle on Mobile since Right Sidebar is hidden -->
+                <button class="p-2.5 text-gray-400 bg-white/5 hover:bg-white/10 rounded-full transition-colors xl:hidden">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                </button>
+                <button class="p-2.5 text-gray-400 bg-white/5 hover:bg-white/10 rounded-full transition-colors hidden sm:flex">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Body -->
+        <div class="flex-1 px-4 sm:px-8 py-4 overflow-y-auto z-10 custom-scrollbar">
+            
+            <!-- RESPONSIVE ACTION CARDS GRID -->
+            <!-- Mobile: grid-cols-1 -->
+            <!-- Tablet (sm): grid-cols-2 -->
+            <!-- Desktop (lg): grid-cols-3 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+
+                <!-- 1. ORANGE CARD (Advanced Split-Action) -->
+                <!-- Tablet: Spans 2 columns (Full Width Hero) -->
+                <!-- Desktop: Spans 1 column (Normal) -->
+                <div class="col-span-1 sm:col-span-2 lg:col-span-1 group relative w-full h-auto min-h-[240px] rounded-[2rem] overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_-12px_rgba(255,100,50,0.4)] hover:-translate-y-1 cursor-pointer">
+                    <div class="absolute inset-0 bg-gradient-to-br from-[#FF4D00] via-[#FF6A00] to-[#E63600] transition-all duration-500 group-hover:scale-110"></div>
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-yellow-400 rounded-full blur-3xl opacity-40 mix-blend-overlay animate-pulse"></div>
+                    <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500 rounded-full blur-3xl opacity-30 mix-blend-overlay"></div>
+                    <div class="absolute inset-0 bg-noise opacity-30 mix-blend-soft-light"></div>
+
+                    <div class="relative h-full flex flex-col p-1.5">
+                        <!-- Top Zone -->
+                        <div onclick="startInstantMeeting()" class="flex-1 relative flex flex-col justify-between p-5 rounded-t-[28px] rounded-b-xl hover:bg-white/10 transition-colors duration-300 border border-white/10 group-hover:border-white/20 min-h-[140px]">
+                            <div class="absolute inset-0 backdrop-blur-sm rounded-[28px] -z-10"></div>
+                            <div class="flex justify-between items-start">
+                                <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center shadow-inner border border-white/10">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                </div>
+                                <div class="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 bg-white/20 p-1.5 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                </div>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-white tracking-tight drop-shadow-sm">New Meeting</h2>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                                    <p class="text-orange-50 text-xs font-medium opacity-90">Instant Start</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="h-1.5"></div>
+
+                        <!-- Bottom Zone -->
+                        <button onclick="createForLater(event)" class="h-[72px] relative w-full flex items-center justify-between px-5 rounded-b-[28px] rounded-t-xl border border-white/10 hover:bg-white/20 active:scale-[0.98] transition-all duration-200 group/btn">
+                            <div class="absolute inset-0 backdrop-blur-md rounded-b-[28px] rounded-t-xl -z-10 bg-black/10"></div>
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-white/10 rounded-xl">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                                </div>
+                                <div class="text-left">
+                                    <span class="block text-white text-sm font-bold tracking-wide">Create for later</span>
+                                    <span class="block text-white/70 text-[11px]">Get a shareable link</span>
+                                </div>
+                            </div>
+                            <div class="bg-white/10 p-2 rounded-lg group-hover/btn:bg-white group-hover/btn:text-orange-600 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. BLUE CARD (Join Meeting) -->
+                <div class="relative w-full h-[240px] rounded-[2rem] overflow-hidden group bg-gradient-to-br from-blue-600 to-cyan-500 p-6 flex flex-col justify-between hover:shadow-[0_20px_50px_-12px_rgba(50,150,255,0.4)] transition-all duration-300">
+                     <div class="absolute inset-0 bg-noise opacity-20 mix-blend-soft-light"></div>
+                     <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                     <div class="relative z-10">
+                        <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        </div>
+                        <h2 class="text-2xl font-bold">Join Meeting</h2>
+                        <p class="text-blue-50/70 text-sm mt-1">Connect via code or link</p>
+                     </div>
+                     <div class="relative z-10 flex gap-2">
+                        <input type="text" placeholder="# Enter code" class="flex-1 bg-black/20 backdrop-blur-md border border-white/10 rounded-xl px-4 text-sm text-white placeholder-blue-100/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all">
+                        <button class="bg-white text-blue-600 font-bold px-4 py-3 rounded-xl hover:bg-blue-50 transition-colors shadow-lg">Join</button>
+                     </div>
+                </div>
+
+                <!-- 3. GREEN CARD (Schedule) -->
+                <div class="relative w-full h-[240px] rounded-[2rem] overflow-hidden group bg-gradient-to-br from-emerald-500 to-green-600 p-6 flex flex-col justify-between hover:shadow-[0_20px_50px_-12px_rgba(50,255,100,0.3)] transition-all duration-300 cursor-pointer">
+                    <div class="absolute inset-0 bg-noise opacity-20 mix-blend-soft-light"></div>
+                    <div class="absolute bottom-0 right-0 w-40 h-40 bg-yellow-300/20 rounded-full blur-3xl"></div>
+                    <div class="relative z-10">
+                        <div class="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </div>
+                        <h2 class="text-2xl font-bold">Schedule Meeting</h2>
+                        <p class="text-green-50/80 text-sm mt-1 max-w-[180px]">Plan a meeting for later.</p>
+                    </div>
+                    <div class="relative z-10 self-end">
+                        <span class="bg-black/20 backdrop-blur-md text-white/90 text-xs font-bold px-3 py-1.5 rounded-lg border border-white/10">Plan Ahead</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Rooms (Fade in animation) -->
+            <div class="animate-fade-in" style="animation-delay: 0.1s;">
+                <h3 class="flex items-center gap-2 text-gray-400 font-semibold mb-4 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Recent Rooms
+                </h3>
+                <div class="w-full h-48 rounded-[2rem] border border-dashed border-gray-700 bg-gray-800/30 flex flex-col items-center justify-center gap-4 text-center px-4">
+                    <div class="h-12 w-12 bg-gray-700/50 rounded-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21l-3-3m0 0l-3 3m3-3V15" /></svg>
+                    </div>
+                    <p class="text-gray-500 text-sm">No recent meetings</p>
+                    <button class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        Create Your First Meeting
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- RIGHT SIDEBAR (Hidden on Mobile/Tablet) -->
+    <aside class="hidden xl:flex w-80 bg-[#13151b] border-l border-white/5 flex-col p-6 z-20">
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="text-xl font-bold">Schedule</h2>
+            <div class="flex bg-gray-800 rounded-lg p-1 text-xs font-semibold">
+                <button class="px-3 py-1 bg-gray-600 text-white rounded shadow-sm">Today</button>
+                <button class="px-3 py-1 text-gray-400 hover:text-white transition-colors">Upcoming</button>
+            </div>
+        </div>
+        <div class="flex-1 relative border-l border-gray-700 ml-3 pl-6 space-y-8">
+            <div class="relative group">
+                <div class="absolute -left-[31px] top-1 h-3 w-3 rounded-full bg-blue-500 border-2 border-[#13151b]"></div>
+                <span class="text-blue-400 text-xs font-bold mb-1 block">10:00</span>
+                <div class="bg-gray-800 p-4 rounded-xl border-l-4 border-blue-500 cursor-pointer hover:bg-gray-750 transition-colors">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-bold text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded">IN 15 MINS</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </div>
+                    <h4 class="font-bold text-sm mb-1">Product Roadmap Q3</h4>
+                    <p class="text-gray-400 text-xs mb-3">Sync with Engineering & Product teams</p>
+                    <div class="flex justify-between items-center">
+                        <div class="flex -space-x-2">
+                            <img src="https://i.pravatar.cc/100?img=1" class="w-6 h-6 rounded-full border border-gray-800" alt="">
+                            <img src="https://i.pravatar.cc/100?img=5" class="w-6 h-6 rounded-full border border-gray-800" alt="">
+                            <img src="https://i.pravatar.cc/100?img=8" class="w-6 h-6 rounded-full border border-gray-800" alt="">
+                        </div>
+                        <span class="text-xs text-gray-500">45 min</span>
+                    </div>
+                </div>
+            </div>
+            <div class="relative">
+                <div class="absolute -left-[31px] top-1 h-3 w-3 rounded-full bg-gray-600 border-2 border-[#13151b]"></div>
+                <span class="text-gray-500 text-xs font-bold mb-1 block">13:30</span>
+                <div class="bg-gray-800/50 p-4 rounded-xl border border-white/5">
+                    <h4 class="font-bold text-sm text-gray-300">Design Handoff</h4>
+                    <p class="text-gray-500 text-xs">Review final mockups with Sarah</p>
+                </div>
+            </div>
+        </div>
+        <div class="mt-auto bg-gradient-to-r from-purple-900/50 to-indigo-900/50 p-4 rounded-xl border border-purple-500/30">
+            <h5 class="text-purple-300 text-xs font-bold uppercase mb-1">Pro Feature</h5>
+            <p class="text-xs text-gray-300 leading-relaxed">Recordings now include AI-generated summaries.</p>
+        </div>
+    </aside>
+
+    <!-- NEW MEETING MODAL -->
+    <div id="meetingModalWrapper" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
+        <div id="meetingModal" class="relative bg-[#1e2028] border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl p-6 transform transition-all duration-300 scale-95 opacity-0">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-xl font-semibold text-white">Here's your joining info</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <p class="text-gray-400 text-sm mb-6 leading-relaxed">Send this to people you want to meet with. Be sure to save it so you can use it later, too.</p>
+            <div class="bg-[#13151b] rounded-xl flex items-center justify-between p-1.5 pl-4 border border-white/5">
+                <span id="generatedLink" class="text-sm text-gray-300 truncate select-all">meet.ui/xxx-xxx-xxx</span>
+                <button onclick="copyLinkFromModal()" id="modalCopyBtn" class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all ml-2 flex-shrink-0">
+                    <svg id="copyIconSvg" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    <svg id="checkIconSvg" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const options = { weekday: 'long', month: 'short', day: 'numeric' };
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', options).toUpperCase();
+
+        // Responsive Sidebar Logic
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+            
+            if (isClosed) {
+                // Open Sidebar
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+            } else {
+                // Close Sidebar
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('opacity-0');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            }
+        }
+
+        function startInstantMeeting() { console.log("Starting instant meeting..."); }
+        
+        function generateMeetingCode() {
+            const chars = 'abcdefghijklmnopqrstuvwxyz';
+            const s1 = Array(3).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
+            const s2 = Array(4).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
+            const s3 = Array(3).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
+            return `meet.ui/${s1}-${s2}-${s3}`;
+        }
+
+        function createForLater(e) {
+            e.stopPropagation();
+            const link = generateMeetingCode();
+            document.getElementById('generatedLink').textContent = link;
+            const wrapper = document.getElementById('meetingModalWrapper');
+            const modal = document.getElementById('meetingModal');
+            wrapper.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('scale-95', 'opacity-0'); modal.classList.add('scale-100', 'opacity-100'); }, 10);
+        }
+
+        function closeModal() {
+            const wrapper = document.getElementById('meetingModalWrapper');
+            const modal = document.getElementById('meetingModal');
+            modal.classList.remove('scale-100', 'opacity-100');
+            modal.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                wrapper.classList.add('hidden');
+                document.getElementById('copyIconSvg').classList.remove('hidden');
+                document.getElementById('checkIconSvg').classList.add('hidden');
+            }, 300);
+        }
+
+        function copyLinkFromModal() {
+            const linkText = document.getElementById('generatedLink').textContent;
+            navigator.clipboard.writeText(linkText).then(() => {
+                document.getElementById('copyIconSvg').classList.add('hidden');
+                document.getElementById('checkIconSvg').classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('copyIconSvg').classList.remove('hidden');
+                    document.getElementById('checkIconSvg').classList.add('hidden');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

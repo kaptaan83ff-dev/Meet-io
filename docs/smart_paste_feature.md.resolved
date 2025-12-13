@@ -1,0 +1,47 @@
+# 📋 Feature Update: Smart Paste for Join Meeting
+
+**Feature:** Automatic Meeting Code Extraction
+**Date:** December 12, 2025
+**Files Modified:** [JoinMeetingCard.tsx](file:///d:/meet-io/client/src/components/dashboard/JoinMeetingCard.tsx)
+
+## The Problem
+Users had to manually extract the 11-character meeting code (e.g., `ABC-DEF-GHI`) from the full invite link (`http://.../meeting/ABC-DEF-GHI`) before pasting it into the join box. The input field also had a hard `maxLength={11}` limit, preventing the paste of full URLs.
+
+## The Solution
+We enhanced the input field to be "smart" about what it accepts.
+
+### 1. Logic Implementation
+We modified the `onChange` handler to intercept the user's input/paste event and run a Regular Expression (Regex) check.
+
+**Code Snippet:**
+```typescript
+onChange={(e) => {
+    const val = e.target.value;
+    
+    // Regex Logic:
+    // \/meeting\/  -> looks for "/meeting/"
+    // (...)        -> capture group for the code
+    // [a-zA-Z0-9]{3} -> 3 alphanumeric characters
+    // -            -> hyphen separator
+    const urlMatch = val.match(/\/meeting\/([a-zA-Z0-9]{3}-[a-zA-Z0-9]{3}-[a-zA-Z0-9]{3})/i);
+    
+    if (urlMatch && urlMatch[1]) {
+        // If a URL is detected, ignore the "http..." part and just take the code
+        setJoinCode(urlMatch[1].toUpperCase());
+        toast.success('Meeting code extracted!');
+    } else {
+        // If it's just a normal code or typing, accept it as is
+        setJoinCode(val.toUpperCase());
+    }
+}}
+```
+
+### 2. UI Changes
+- **Removed `maxLength={11}`**: This was critical. By removing the limit, we allow the socket to receive the *entire* long URL string first, giving our code a chance to process it, instead of the browser cutting it off immediately.
+- **Auto-Formatting**: We force `toUpperCase()` so even if a URL is lowercase, the meeting code is standardized.
+
+## User Experience
+1. User copies full link: `http://localhost:5174/meeting/ABC-DEF-GHI`
+2. User pastes into input.
+3. Input value instantly transforms to: `ABC-DEF-GHI`
+4. User clicks "Join".

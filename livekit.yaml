@@ -1,0 +1,34 @@
+port: 7880
+rtc:
+  port_range_start: 50000
+  port_range_end: 50099
+  # Use local IP for development
+  use_external_ip: false
+  
+redis:
+  address: redis:6379
+
+# Development keys - DO NOT use in production!
+keys:
+  devkey: devsecret
+
+# Room settings
+room:
+  # Automatically create rooms when they don't exist
+  auto_create: true
+  # Maximum participants per room
+  max_participants: 50
+  # Room timeout after last participant leaves (in seconds)
+  empty_timeout: 300
+  
+# Logging configuration
+logging:
+  level: info
+  # Enable for debugging
+  # level: debug
+  
+# Turn server configuration (for NAT traversal)
+turn:
+  enabled: true
+  # Use the container's internal address
+  external_tls: false
