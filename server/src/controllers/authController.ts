@@ -172,3 +172,26 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
         });
     }
 };
+
+/**
+ * Handle Social Login Callback
+ * Redirects to frontend with token
+ */
+export const socialLoginCallback = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const user = req.user as any;
+        if (!user) {
+            res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/login?error=auth_failed`);
+            return;
+        }
+
+        // Generate token
+        const token = user.getSignedJwtToken();
+
+        // Redirect to frontend with token
+        res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/login?token=${token}`);
+    } catch (error) {
+        console.error('Social login callback error:', error);
+        res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/login?error=server_error`);
+    }
+};

@@ -6,7 +6,8 @@ import {
     updateProfile,
     updatePassword,
     getSessions,
-    logoutAllSessions
+    logoutAllSessions,
+    deleteAccount
 } from '../controllers/userController';
 import { protect } from '../middleware/authMiddleware';
 
@@ -24,5 +25,8 @@ router.put('/profile', updateProfile);
 router.put('/password', updatePassword);
 router.get('/sessions', getSessions);
 router.delete('/sessions', logoutAllSessions);
+
+// Delete account
+router.delete('/me', deleteAccount);
 
 export default router;

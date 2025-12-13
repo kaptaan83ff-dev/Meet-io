@@ -43,7 +43,7 @@ export const deleteUser = async (req: Request, res: Response) => {
         }
 
         // Prevent admin from deleting themselves
-        if (req.user && req.user._id.toString() === user._id.toString()) {
+        if (req.user && (req.user as any)._id.toString() === user._id.toString()) {
             res.status(400).json({
                 success: false,
                 error: 'You cannot delete your own admin account'
@@ -84,7 +84,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
         }
 
         // Prevent admin from changing their own role
-        if (req.user && req.user._id.toString() === user._id.toString()) {
+        if (req.user && (req.user as any)._id.toString() === user._id.toString()) {
             res.status(400).json({
                 success: false,
                 error: 'You cannot change your own role'

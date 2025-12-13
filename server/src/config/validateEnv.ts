@@ -15,10 +15,10 @@ const envSchema = z.object({
     // JWT Configuration
     JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
 
-    // LiveKit Configuration
-    LIVEKIT_API_KEY: z.string().min(1, 'LIVEKIT_API_KEY is required'),
-    LIVEKIT_API_SECRET: z.string().min(1, 'LIVEKIT_API_SECRET is required'),
-    LIVEKIT_URL: z.string().url('LIVEKIT_URL must be a valid URL').default('ws://localhost:7880'),
+    // LiveKit Configuration (optional for development - video features won't work without these)
+    LIVEKIT_API_KEY: z.string().default('devkey'),
+    LIVEKIT_API_SECRET: z.string().default('devsecret'),
+    LIVEKIT_URL: z.string().default('ws://localhost:7880'),
 
     // Redis Configuration (optional)
     REDIS_URL: z.string().optional(),
@@ -46,7 +46,7 @@ export function validateEnv(): Env {
     } catch (error) {
         if (error instanceof z.ZodError) {
             console.error('❌ Environment validation failed:');
-            error.errors.forEach((err: z.ZodIssue) => {
+            (error as any).errors.forEach((err: z.ZodIssue) => {
                 console.error(`  - ${err.path.join('.')}: ${err.message}`);
             });
             throw new Error('Invalid environment configuration');

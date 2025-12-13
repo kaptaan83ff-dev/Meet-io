@@ -46,7 +46,7 @@ export default function Sidebar() {
                     )}
                 </NavLink>
 
-                <NavLink to="/meetings" className={({ isActive }) => `p-3 rounded-xl transition-all relative group ${isActive ? 'text-blue-500 bg-blue-500/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                <NavLink to="/calendar" className={({ isActive }) => `p-3 rounded-xl transition-all relative group ${isActive ? 'text-blue-500 bg-blue-500/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                     {({ isActive }) => (
                         <>
                             {isActive && <div className="absolute left-0 w-1 h-8 bg-blue-500 rounded-r-full -translate-x-4 opacity-100 lg:-translate-x-4 lg:-translate-x-6"></div>}
@@ -57,8 +57,8 @@ export default function Sidebar() {
                     )}
                 </NavLink>
 
-                {/* Recordings / Clock Icon */}
-                <NavLink to="/recordings" className={({ isActive }) => `p-3 rounded-xl transition-all relative group ${isActive ? 'text-blue-500 bg-blue-500/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                {/* History / Clock Icon */}
+                <NavLink to="/history" className={({ isActive }) => `p-3 rounded-xl transition-all relative group ${isActive ? 'text-blue-500 bg-blue-500/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                     {({ isActive }) => (
                         <>
                             {isActive && <div className="absolute left-0 w-1 h-8 bg-blue-500 rounded-r-full -translate-x-4 opacity-100 lg:-translate-x-4 lg:-translate-x-6"></div>}
@@ -86,10 +86,17 @@ export default function Sidebar() {
 
             <div className="flex-1"></div>
 
-            {/* User Avatar / Profile */}
-            <button className="h-10 w-10 bg-slate-700 rounded-full flex items-center justify-center text-sm font-bold border border-white/10 hover:border-blue-500 transition-colors mb-4 lg:mb-0">
+            {/* User Avatar / Profile - Click to go to Profile */}
+            <NavLink
+                to="/profile"
+                className={({ isActive }) => `h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold border transition-colors mb-4 lg:mb-0 ${isActive
+                    ? 'bg-blue-600 border-blue-500 text-white'
+                    : 'bg-slate-700 border-white/10 hover:border-blue-500 text-white'
+                    }`}
+                title="Profile Settings"
+            >
                 {userInitial}
-            </button>
+            </NavLink>
         </aside>
     );
 }

@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import http from 'http';
 import { Server } from 'socket.io';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { createClient } from 'redis';
 import { env } from './config/validateEnv';
 import { connectDB } from './config/db';
 import authRoutes from './routes/authRoutes';
@@ -21,6 +23,9 @@ const httpServer = http.createServer(app);
 
 // Security middleware
 app.use(helmet());
+
+// Passport Config
+import './config/passport';
 
 // Webhook Route - MUST be defined before body parsers to capture raw body
 // Signature verification requires the raw body buffer
@@ -55,6 +60,19 @@ const io = new Server(httpServer, {
     }
 });
 
+// Redis Adapter Setup
+const pubClient = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
+const subClient = pubClient.duplicate();
+
+Promise.all([pubClient.connect(), subClient.connect()])
+    .then(() => {
+        io.adapter(createAdapter(pubClient, subClient));
+        console.log('Redis Adapter connected successfully');
+    })
+    .catch((err) => {
+        console.error('Redis connection failed:', err);
+    });
+
 // Setup Socket Handlers
 initializeSocketIO(io);
 
@@ -71,6 +89,16 @@ app.get('/health', (_req: Request, res: Response) => {
         status: 'ok',
         timestamp: new Date().toISOString(),
         environment: env.NODE_ENV,
+    });
+});
+
+// Server time endpoint - returns current server time for calendar sync
+app.get('/api/server-time', (_req: Request, res: Response) => {
+    const now = new Date();
+    res.status(200).json({
+        success: true,
+        serverTime: now.toISOString(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
 });
 

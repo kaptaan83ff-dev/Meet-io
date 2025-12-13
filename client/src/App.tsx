@@ -9,9 +9,11 @@ import SchedulePage from './pages/SchedulePage';
 import RecordingsPage from './pages/RecordingsPage';
 import SettingsPage from './pages/SettingsPage';
 import MeetingRoomPage from './pages/MeetingRoomPage';
-import AdminPage from './pages/AdminPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import MessagesPage from './pages/MessagesPage';
+import CalendarPage from './pages/CalendarPage';
+import HistoryPage from './pages/HistoryPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
@@ -117,7 +119,7 @@ function App() {
             path="/admin"
             element={
               <AdminRoute>
-                <AdminPage />
+                <AdminDashboardPage />
               </AdminRoute>
             }
           />
@@ -126,6 +128,32 @@ function App() {
             element={
               <ProtectedRoute>
                 <MessagesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/calendar"
+            element={
+              <ProtectedRoute>
+                <CalendarPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <AdminDashboardPage />
+                </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute>
+                <HistoryPage />
               </ProtectedRoute>
             }
           />

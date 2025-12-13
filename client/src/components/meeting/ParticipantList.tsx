@@ -7,8 +7,8 @@ interface ParticipantListProps {
     participants: Participant[]; // LiveKit participants
     pendingParticipants: any[]; // Waiting room participants (our custom type)
     isHost: boolean;
-    onAdmit: (socketId: string) => void;
-    onDeny: (socketId: string) => void;
+    onAdmit: (userId: string, userName: string) => void;
+    onDeny: (userId: string, userName: string) => void;
 }
 
 export default function ParticipantList({
@@ -136,26 +136,26 @@ export default function ParticipantList({
                             </div>
                         ) : (
                             pendingParticipants.map((p) => (
-                                <div key={p.id} className="bg-white/5 p-3 rounded-xl border border-white/5">
+                                <div key={p.userId || p.socketId} className="bg-white/5 p-3 rounded-xl border border-white/5">
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold text-white">
                                             {p.name.charAt(0).toUpperCase()}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-medium text-white truncate">{p.name}</div>
+                                            <div className="text-sm font-medium text-white truncate">{p.userName || p.name}</div>
                                             <div className="text-xs text-gray-400">Wants to join...</div>
                                         </div>
                                     </div>
 
                                     <div className="flex gap-2">
                                         <button
-                                            onClick={() => onAdmit(p.socketId)}
+                                            onClick={() => onAdmit(p.userId, p.userName || p.name)}
                                             className="flex-1 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-lg text-xs font-medium transition-colors border border-green-500/20"
                                         >
                                             Admit
                                         </button>
                                         <button
-                                            onClick={() => onDeny(p.socketId)}
+                                            onClick={() => onDeny(p.userId, p.userName || p.name)}
                                             className="flex-1 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-xs font-medium transition-colors border border-red-500/20"
                                         >
                                             Deny

@@ -11,7 +11,7 @@ export const admin = (
     next: NextFunction
 ): void => {
     // Check if user exists (set by protect middleware) and has admin role
-    if (req.user && req.user.role === 'admin') {
+    if (req.user && (req.user as any).role === 'admin') {
         next();
     } else {
         res.status(403).json({

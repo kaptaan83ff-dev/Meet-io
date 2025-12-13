@@ -130,6 +130,24 @@ export default function ProfilePage() {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        // Double confirmation
+        if (!window.confirm("⚠️ WARNING: This will permanently delete your account and all your data. This action cannot be undone. Are you sure?")) {
+            return;
+        }
+
+        try {
+            const data = await userAPI.deleteAccount();
+            if (data.success) {
+                toast.success('Account deleted successfully');
+                // Clear any local state and redirect to login
+                window.location.href = '/login';
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to delete account');
+        }
+    };
+
     return (
         <div className="bg-[#0B0E14] text-white h-screen flex overflow-hidden font-['Inter']">
             <Sidebar />
@@ -374,6 +392,7 @@ export default function ProfilePage() {
                                             />
                                             <button
                                                 disabled={deleteConfirm !== 'DELETE'}
+                                                onClick={handleDeleteAccount}
                                                 className="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 Delete Account

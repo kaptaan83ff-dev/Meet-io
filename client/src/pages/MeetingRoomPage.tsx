@@ -42,8 +42,8 @@ interface MeetingContentProps {
     isParticipantsOpen: boolean;
     onToggleParticipants: () => void;
     pendingParticipants: any[];
-    onAdmit: (id: string) => void;
-    onDeny: (id: string) => void;
+    onAdmit: (userId: string, userName: string) => void;
+    onDeny: (userId: string, userName: string) => void;
 }
 
 function MeetingContent({
@@ -254,20 +254,31 @@ export default function MeetingRoomPage() {
         navigate('/dashboard');
     }, [navigate]);
 
-    const handleAdmitUser = useCallback((socketId: string) => {
+    const handleAdmitUser = useCallback(async (userId: string, userName: string) => {
         if (!code) return;
-        getSocket().emit('admit-user', { roomId: code, socketId });
-        // Optimistic update
-        setPendingParticipants(prev => prev.filter(p => p.socketId !== socketId));
-        toast.success('User admitted');
+        try {
+            // Call backend API to admit user and get their token
+            const response = await meetingAPI.admitParticipant({ code, participantId: userId });
+            if (response.success) {
+                // Emit socket event with the token
+                getSocket().emit('admit-user', {
+                    roomId: code,
+                    participantId: userId,
+                    token: response.token
+                });
+                setPendingParticipants(prev => prev.filter(p => p.userId !== userId));
+                toast.success(`${userName} admitted`);
+            }
+        } catch (error: any) {
+            toast.error('Failed to admit user');
+        }
     }, [code]);
 
-    const handleDenyUser = useCallback((socketId: string) => {
+    const handleDenyUser = useCallback((userId: string, userName: string) => {
         if (!code) return;
-        getSocket().emit('deny-user', { roomId: code, socketId });
-        // Optimistic update
-        setPendingParticipants(prev => prev.filter(p => p.socketId !== socketId));
-        toast.success('User denied');
+        getSocket().emit('deny-user', { roomId: code, participantId: userId });
+        setPendingParticipants(prev => prev.filter(p => p.userId !== userId));
+        toast.success(`${userName} denied`);
     }, [code]);
 
     // Socket Connection Effect
@@ -299,11 +310,20 @@ export default function MeetingRoomPage() {
 
         // Host listeners for waiting room
         const handleUserPending = (data: any) => {
+            console.log('[SOCKET] Received pending-participant:', data, 'isHost:', isHost);
             if (isHost) {
                 setPendingParticipants(prev => {
-                    if (prev.find(p => p.socketId === data.socketId)) return prev;
-                    toast(`New user waiting: ${data.name}`, { icon: '👋' });
-                    return [...prev, data];
+                    // Check by userId, not socketId
+                    if (prev.find(p => p.userId === data.userId)) return prev;
+                    // Use userName from backend (also support name as fallback)
+                    const userName = data.userName || data.name || 'Unknown';
+                    toast(`${userName} wants to join!`, {
+                        icon: '👋',
+                        duration: 10000 // Keep visible longer
+                    });
+                    // Auto-open participants panel when someone is waiting
+                    setIsParticipantsOpen(true);
+                    return [...prev, { ...data, name: userName }];
                 });
             }
         };
@@ -314,13 +334,13 @@ export default function MeetingRoomPage() {
         };
 
         socket.on('chat-message', handleChatMessage);
-        socket.on('user-pending', handleUserPending);
+        socket.on('pending-participant', handleUserPending);
         socket.on('user-left-waiting', handleUserLeftWaiting);
 
         // Cleanup on unmount
         return () => {
             socket.off('chat-message', handleChatMessage);
-            socket.off('user-pending', handleUserPending);
+            socket.off('pending-participant', handleUserPending);
             socket.off('user-left-waiting', handleUserLeftWaiting);
             disconnectSocket();
         };

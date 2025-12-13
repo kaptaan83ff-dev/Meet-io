@@ -1,7 +1,45 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Github, Chrome, CheckCircle2 } from 'lucide-react';
+
+// --- Components ---
+
+interface SocialButtonProps {
+    icon: React.ElementType;
+    label: string;
+    onClick: () => void;
+    colorClass: string;
+}
+
+const SocialButton = ({ icon: Icon, label, onClick, colorClass }: SocialButtonProps) => (
+    <button
+        type="button"
+        onClick={onClick}
+        className={`group relative flex items-center justify-center w-full py-3 px-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-300 ease-out active:scale-[0.98] ${colorClass}`}
+    >
+        <Icon className="w-5 h-5 mr-3 transition-transform group-hover:scale-110" />
+        <span className="font-medium text-slate-200 text-sm tracking-wide">{label}</span>
+    </button>
+);
+
+const FeatureCard = ({ title, subtitle, gradient, icon: Icon, delay }: any) => (
+    <div
+        className={`relative overflow-hidden rounded-2xl p-6 ${gradient} transform hover:-translate-y-1 transition-all duration-500 shadow-xl cursor-default group animate-in fade-in slide-in-from-bottom-4`}
+        style={{ animationDelay: `${delay}ms`, animationFillMode: 'backwards' }}
+    >
+        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Icon className="w-24 h-24" />
+        </div>
+        <div className="relative z-10">
+            <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4 backdrop-blur-sm">
+                <Icon className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-1">{title}</h3>
+            <p className="text-white/80 text-sm font-medium">{subtitle}</p>
+        </div>
+    </div>
+);
 
 export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -27,10 +65,8 @@ export default function LoginPage() {
             } else {
                 await register(formData.name, formData.email, formData.password);
             }
-            // Redirect to dashboard on success
             navigate('/dashboard');
         } catch (error) {
-            // Error toast already shown in AuthContext
             console.error('Auth error:', error);
         } finally {
             setIsLoading(false);
@@ -40,6 +76,12 @@ export default function LoginPage() {
     const toggleMode = () => {
         setIsLogin(!isLogin);
         setFormData({ name: '', email: '', password: '' });
+    };
+
+    const handleSocialLogin = (provider: 'google' | 'github') => {
+        // Redirect to backend auth endpoint
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        window.location.href = `${apiUrl}/auth/${provider}`;
     };
 
     return (
@@ -82,20 +124,27 @@ export default function LoginPage() {
                             </p>
                         </div>
 
-                        {/* Feature Cards */}
+                        {/* Floating Cards simulating the Dashboard UI */}
                         <div className="grid grid-cols-1 gap-4 max-w-sm">
-                            <div className="group relative w-full h-auto min-h-[120px] rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer bg-gradient-to-br from-orange-500 to-red-600 p-6">
-                                <div className="relative z-10">
-                                    <h3 className="text-xl font-bold text-white mb-2">New Meeting</h3>
-                                    <p className="text-orange-50/80 text-sm">Start an instant meeting</p>
-                                </div>
-                            </div>
+                            <FeatureCard
+                                title="New Meeting"
+                                subtitle="Start an instant meeting"
+                                gradient="bg-gradient-to-br from-orange-500 to-red-600"
+                                icon={CheckCircle2}
+                                delay={100}
+                            />
                             <div className="flex gap-4">
-                                <div className="flex-1 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 p-6">
-                                    <h3 className="text-lg font-bold text-white">Join</h3>
-                                    <p className="text-blue-50/70 text-xs mt-1">Via code</p>
+                                <div className="flex-1">
+                                    <FeatureCard
+                                        title="Join"
+                                        subtitle="Via code"
+                                        gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
+                                        icon={ArrowRight}
+                                        delay={200}
+                                    />
                                 </div>
-                                <div className="w-16 rounded-2xl bg-[#1E2330] border border-white/5"></div>
+                                {/* Simplified mock card for layout balance */}
+                                <div className="w-16 rounded-2xl bg-[#1E2330] border border-white/5 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '300ms' }}></div>
                             </div>
                         </div>
                     </div>
@@ -214,6 +263,34 @@ export default function LoginPage() {
                             </button>
                         </form>
 
+                        {/* Divider */}
+                        <div className="relative my-8">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-white/10"></div>
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-[#151921] px-4 text-slate-500 font-semibold tracking-wider">
+                                    Or continue with
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Social Login */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <SocialButton
+                                icon={Chrome}
+                                label="Google"
+                                onClick={() => handleSocialLogin('google')}
+                                colorClass="hover:bg-blue-500/10 hover:border-blue-500/30 hover:text-white"
+                            />
+                            <SocialButton
+                                icon={Github}
+                                label="GitHub"
+                                onClick={() => handleSocialLogin('github')}
+                                colorClass="hover:bg-purple-500/10 hover:border-purple-500/30 hover:text-white"
+                            />
+                        </div>
+
                         {/* Toggle Mode */}
                         <div className="mt-8 text-center">
                             <p className="text-slate-400 text-sm">
@@ -226,7 +303,6 @@ export default function LoginPage() {
                                 </button>
                             </p>
                         </div>
-
                     </div>
                 </div>
             </div>

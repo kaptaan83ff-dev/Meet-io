@@ -6,7 +6,11 @@ import { env } from './validateEnv';
  */
 export const connectDB = async (): Promise<void> => {
     try {
-        const conn = await mongoose.connect(env.MONGO_URI);
+        const conn = await mongoose.connect(env.MONGO_URI, {
+            maxPoolSize: 10,
+            minPoolSize: 2,
+            socketTimeoutMS: 45000,
+        });
 
         console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
         console.log(`📊 Database: ${conn.connection.name}`);

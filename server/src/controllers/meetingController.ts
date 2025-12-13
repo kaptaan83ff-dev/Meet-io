@@ -18,9 +18,9 @@ import { sendEmail, generateICS } from '../utils/emailUtils';
 export const createMeeting = async (req: Request, res: Response): Promise<void> => {
     try {
         const { title, date, time, duration, description, settings, attendees, startTime: rawStartTime } = req.body;
-        const hostId = req.user?._id;
-        const hostName = req.user?.name || 'Host';
-        const hostEmail = req.user?.email || 'noreply@meet.io';
+        const hostId = (req.user as any)?._id;
+        const hostName = (req.user as any)?.name || 'Host';
+        const hostEmail = (req.user as any)?.email || 'noreply@meet.io';
 
         // --- VALIDATION ---
 
@@ -77,13 +77,13 @@ export const createMeeting = async (req: Request, res: Response): Promise<void> 
         }
 
         // 5. Attendees Validation
-        const validAttendees: { email: string; status: string }[] = [];
+        const validAttendees: { email: string; status: 'pending' | 'accepted' | 'declined' }[] = [];
         if (attendees && Array.isArray(attendees)) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             for (const att of attendees) {
                 const email = (att.email || '').trim().toLowerCase();
                 if (email && emailRegex.test(email)) {
-                    validAttendees.push({ email, status: 'pending' });
+                    validAttendees.push({ email, status: 'pending' as const });
                 }
             }
         }
@@ -112,7 +112,7 @@ export const createMeeting = async (req: Request, res: Response): Promise<void> 
             duration: meetingDuration,
             description: (description || '').trim().substring(0, 500),
             settings: {
-                waitingRoom: settings?.waitingRoom ?? false,
+                waitingRoom: settings?.waitingRoom ?? true, // Default to TRUE for security
                 muteOnEntry: settings?.muteOnEntry ?? false,
             },
             attendees: validAttendees,
@@ -196,8 +196,8 @@ export const createMeeting = async (req: Request, res: Response): Promise<void> 
 export const joinMeeting = async (req: Request, res: Response): Promise<void> => {
     try {
         const { code } = req.body;
-        const userId = req.user?._id;
-        const userName = req.user?.name || 'Guest';
+        const userId = (req.user as any)?._id;
+        const userName = (req.user as any)?.name || 'Guest';
 
         // Validation
         if (!code) {
@@ -265,11 +265,14 @@ export const joinMeeting = async (req: Request, res: Response): Promise<void> =>
         }
 
         // Check if waiting room is enabled and user is not the host
+        console.log(`[JOIN DEBUG] Meeting: ${meeting.code}, WaitingRoom: ${meeting.settings?.waitingRoom}, IsHost: ${isHost}, UserId: ${userId}`);
+
         if (meeting.settings?.waitingRoom && !isHost) { // Updated to check settings.waitingRoom
             // Check if user is already a participant (previously admitted)
             const isParticipant = meeting.participants.some(
                 (p) => p.userId.toString() === userId.toString()
             );
+            console.log(`[JOIN DEBUG] IsParticipant: ${isParticipant}, Participants: ${meeting.participants.map(p => p.userId).join(', ')}`);
 
             if (!isParticipant) {
                 // Check if already in pending list
@@ -352,7 +355,7 @@ export const joinMeeting = async (req: Request, res: Response): Promise<void> =>
 export const getMeeting = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const userId = req.user?._id;
+        const userId = (req.user as any)?._id;
 
         if (!userId) {
             res.status(401).json({
@@ -395,8 +398,8 @@ export const getMeeting = async (req: Request, res: Response): Promise<void> => 
  */
 export const getMyMeetings = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user?._id;
-        const userEmail = req.user?.email;
+        const userId = (req.user as any)?._id;
+        const userEmail = (req.user as any)?.email;
 
         if (!userId) {
             res.status(401).json({
@@ -439,8 +442,8 @@ export const getMyMeetings = async (req: Request, res: Response): Promise<void> 
  */
 export const getTodayMeetings = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.user?._id;
-        const userEmail = req.user?.email;
+        const userId = (req.user as any)?._id;
+        const userEmail = (req.user as any)?.email;
 
         if (!userId) {
             res.status(401).json({
@@ -490,7 +493,7 @@ export const getTodayMeetings = async (req: Request, res: Response): Promise<voi
 export const getPendingParticipants = async (req: Request, res: Response): Promise<void> => {
     try {
         const { code } = req.params;
-        const userId = req.user?._id;
+        const userId = (req.user as any)?._id;
 
         if (!userId) {
             res.status(401).json({ success: false, error: 'User not authenticated' });
@@ -528,7 +531,7 @@ export const getPendingParticipants = async (req: Request, res: Response): Promi
 export const admitParticipant = async (req: Request, res: Response): Promise<void> => {
     try {
         const { code, participantId } = req.body;
-        const userId = req.user?._id;
+        const userId = (req.user as any)?._id;
 
         if (!userId) {
             res.status(401).json({ success: false, error: 'User not authenticated' });
@@ -600,7 +603,7 @@ export const admitParticipant = async (req: Request, res: Response): Promise<voi
 export const denyParticipant = async (req: Request, res: Response): Promise<void> => {
     try {
         const { code, participantId } = req.body;
-        const userId = req.user?._id;
+        const userId = (req.user as any)?._id;
 
         if (!userId) {
             res.status(401).json({ success: false, error: 'User not authenticated' });
@@ -653,7 +656,7 @@ export const toggleWaitingRoom = async (req: Request, res: Response): Promise<vo
     try {
         const { code } = req.params;
         const { enabled } = req.body;
-        const userId = req.user?._id;
+        const userId = (req.user as any)?._id;
 
         if (!userId) {
             res.status(401).json({ success: false, error: 'User not authenticated' });
@@ -686,6 +689,148 @@ export const toggleWaitingRoom = async (req: Request, res: Response): Promise<vo
         });
     } catch (error: any) {
         console.error('Toggle waiting room error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
+ * Get user's meeting history (past meetings) with pagination
+ * @route GET /api/meetings/history
+ * @access Private
+ */
+export const getUserMeetingHistory = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req.user as any)?._id;
+        const userEmail = (req.user as any)?.email;
+
+        if (!userId) {
+            res.status(401).json({ success: false, error: 'User not authenticated' });
+            return;
+        }
+
+        // Pagination
+        const page = Math.max(1, parseInt(req.query.page as string) || 1);
+        const limit = 10;
+        const skip = (page - 1) * limit;
+
+        // Query: User is host OR user is in participants array OR user email in attendees
+        // (Removed duplicate $or - using meetingQuery below instead)
+
+        // For MongoDB, we need to use $and to combine these conditions properly
+        const meetingQuery = {
+            $and: [
+                {
+                    $or: [
+                        { hostId: userId },
+                        { 'participants.userId': userId },
+                        { 'attendees.email': userEmail }
+                    ]
+                }
+            ]
+        };
+
+        // Get total count for pagination
+        const totalCount = await Meeting.countDocuments(meetingQuery);
+        const totalPages = Math.ceil(totalCount / limit);
+
+        // Get paginated results
+        const meetings = await Meeting.find(meetingQuery)
+            .populate('hostId', 'name email avatar')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        // Format response
+        const formattedMeetings = meetings.map(m => ({
+            _id: m._id,
+            code: m.code,
+            title: m.title,
+            description: m.description,
+            startTime: m.startTime,
+            duration: m.duration,
+            status: m.status,
+            host: m.hostId,
+            participantCount: (m.participants?.length || 0) + (m.attendees?.length || 0),
+            createdAt: m.createdAt,
+        }));
+
+        res.status(200).json({
+            success: true,
+            meetings: formattedMeetings,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalCount,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            }
+        });
+    } catch (error: any) {
+        console.error('Get meeting history error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
+ * Delete old meetings older than a certain number of days (default 30 days)
+ * @route DELETE /api/meetings/old
+ * @access Private (admin or host)
+ */
+export const deleteOldMeetings = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const days = Math.max(1, parseInt(req.query.days as string) || 30);
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - days);
+        const result = await Meeting.deleteMany({ createdAt: { $lt: cutoff } });
+        res.status(200).json({ success: true, deletedCount: result.deletedCount });
+    } catch (error: any) {
+        console.error('Delete old meetings error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
+ * Send meeting invitations via email
+ * @route POST /api/meetings/:code/invite
+ * @access Private
+ */
+export const inviteToMeeting = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { emails } = req.body;
+        const { code } = req.params;
+
+        if (!emails || !Array.isArray(emails) || emails.length === 0) {
+            res.status(400).json({ success: false, error: 'Please provide a list of emails' });
+            return;
+        }
+
+        const meetingUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/room/${code}`;
+        const html = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+                <h2 style="color: #2563eb;">You've been invited to a meeting</h2>
+                <p>Hello,</p>
+                <p>You have been invited to join a video meeting on Meet-io.</p>
+                
+                <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 0; font-weight: bold;">Meeting Code: ${code}</p>
+                </div>
+
+                <a href="${meetingUrl}" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Join Meeting</a>
+                
+                <p style="margin-top: 20px; font-size: 12px; color: #666;">
+                    Or copy this link: <br>
+                    <a href="${meetingUrl}" style="color: #666;">${meetingUrl}</a>
+                </p>
+            </div>
+        `;
+
+        // Send emails in parallel
+        await Promise.all(emails.map((email: string) => sendEmail(email, "Meeting Invitation - Meet-io", html)));
+
+        res.status(200).json({ success: true, message: `Invites sent to ${emails.length} people` });
+    } catch (error: any) {
+        console.error('Invite error:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 };

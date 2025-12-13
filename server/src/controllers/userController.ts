@@ -48,7 +48,7 @@ export const uploadAvatar = async (req: Request, res: Response) => {
             return;
         }
 
-        const user = await User.findById(req.user._id);
+        const user = await User.findById((req.user as any)._id);
         if (!user) {
             res.status(404).json({ success: false, error: 'User not found' });
             return;
@@ -106,7 +106,7 @@ export const updateProfile = async (req: Request, res: Response) => {
             return;
         }
 
-        const user = await User.findById(req.user._id);
+        const user = await User.findById((req.user as any)._id);
         if (!user) {
             res.status(404).json({ success: false, error: 'User not found' });
             return;
@@ -153,7 +153,7 @@ export const updatePassword = async (req: Request, res: Response) => {
             return;
         }
 
-        const user = await User.findById(req.user._id).select('+password');
+        const user = await User.findById((req.user as any)._id).select('+password');
         if (!user) {
             res.status(404).json({ success: false, error: 'User not found' });
             return;
@@ -193,7 +193,7 @@ export const getSessions = async (req: Request, res: Response) => {
             return;
         }
 
-        const user = await User.findById(req.user._id);
+        const user = await User.findById((req.user as any)._id);
         if (!user) {
             res.status(404).json({ success: false, error: 'User not found' });
             return;
@@ -240,7 +240,7 @@ export const logoutAllSessions = async (req: Request, res: Response) => {
             return;
         }
 
-        const user = await User.findById(req.user._id);
+        const user = await User.findById((req.user as any)._id);
         if (!user) {
             res.status(404).json({ success: false, error: 'User not found' });
             return;
@@ -261,4 +261,49 @@ export const logoutAllSessions = async (req: Request, res: Response) => {
     }
 };
 
-// Add Delete Account logic if desired from prompts
+/**
+ * @desc    Delete user account permanently
+ * @route   DELETE /api/users/me
+ * @access  Private
+ */
+export const deleteAccount = async (req: Request, res: Response) => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, error: 'Not authorized' });
+            return;
+        }
+
+        const userId = (req.user as any)._id;
+
+        // Find and delete user
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(404).json({ success: false, error: 'User not found' });
+            return;
+        }
+
+        // Optionally: Delete user's hosted meetings (import Meeting model if needed)
+        // For now, we just delete the user. In a real app, you'd handle orphaned data.
+
+        // Delete the user
+        await User.findByIdAndDelete(userId);
+
+        // Clear the auth cookie
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Account deleted successfully',
+        });
+    } catch (error: any) {
+        console.error('Delete account error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Server Error',
+        });
+    }
+};

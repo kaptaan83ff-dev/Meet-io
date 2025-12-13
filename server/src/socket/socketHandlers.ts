@@ -63,8 +63,8 @@ export const initializeSocketIO = (io: Server) => {
             userSocketMap.set(userId, socket.id);
             console.log(`User ${userName} joined waiting room for: ${roomId}`);
 
-            // Notify the host (who is in the main room)
-            io.to(roomId).emit('pending-participant', { userId, userName });
+            // Notify the host (who is in the main room) - include socketId for identification
+            io.to(roomId).emit('pending-participant', { userId, userName, socketId: socket.id });
         });
 
         // Host admits a user

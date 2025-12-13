@@ -3,15 +3,6 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwtHelper';
 import User, { IUser } from '../models/User';
 
-// Extend Express Request type to include user
-declare global {
-    namespace Express {
-        interface Request {
-            user?: IUser;
-        }
-    }
-}
-
 /**
  * Protect routes - require authentication
  */
@@ -63,13 +54,16 @@ export const protect = async (
         }
 
         // Attach user to request
-        req.user = user;
+        (req as any).user = user;
         next();
     } catch (error) {
-        console.error('Auth middleware error:', error);
+        // Only log actual errors, not just 401/404s which are expected flows
+        if ((error as any).message !== 'Not authorized') {
+            // console.error('Auth middleware error:', error); 
+        }
         res.status(401).json({
             success: false,
-            error: 'Not authorized to access this route',
+            error: 'Invalid or expired token',
         });
     }
 };

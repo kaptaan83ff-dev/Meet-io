@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import NewMeetingCard from '../components/dashboard/NewMeetingCard';
 import JoinMeetingCard from '../components/dashboard/JoinMeetingCard';
 import ScheduleMeetingCard from '../components/dashboard/ScheduleMeetingCard';
+import RecentRooms from '../components/dashboard/RecentRooms';
 import { useState } from 'react';
 
 export default function DashboardPage() {
@@ -89,24 +90,13 @@ export default function DashboardPage() {
                         <ScheduleMeetingCard />
                     </div>
 
-                    {/* Recent Rooms */}
+                    {/* Recent Rooms - Last 4 */}
                     <div className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
                         <h3 className="flex items-center gap-2 text-gray-400 font-semibold mb-4 text-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             Recent Rooms
                         </h3>
-                        <div className="w-full h-48 rounded-[2rem] border border-dashed border-gray-700 bg-gray-800/30 flex flex-col items-center justify-center gap-4 text-center px-4">
-                            <div className="h-12 w-12 bg-gray-700/50 rounded-full flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21l-3-3m0 0l-3 3m3-3V15" />
-                                </svg>
-                            </div>
-                            <p className="text-gray-500 text-sm">No recent meetings</p>
-                            <button className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
-                                Create Your First Meeting
-                            </button>
-                        </div>
+                        <RecentRooms />
                     </div>
                 </div>
             </main>

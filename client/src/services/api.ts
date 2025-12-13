@@ -88,6 +88,26 @@ export const meetingAPI = {
         const response = await api.get('/meetings/today');
         return response.data;
     },
+
+    getMeetingHistory: async (page: number = 1) => {
+        const response = await api.get(`/meetings/history?page=${page}`);
+        return response.data;
+    },
+
+    admitParticipant: async (data: { code: string; participantId: string }) => {
+        const response = await api.post('/meetings/admit', data);
+        return response.data;
+    },
+
+    denyParticipant: async (data: { code: string; participantId: string }) => {
+        const response = await api.post('/meetings/deny', data);
+        return response.data;
+    },
+
+    deleteOldMeetings: async (days: number = 30) => {
+        const response = await api.delete(`/meetings/old?days=${days}`);
+        return response.data;
+    },
 };
 
 // Admin API functions
@@ -136,6 +156,19 @@ export const userAPI = {
 
     logoutAllSessions: async () => {
         const response = await api.delete('/users/sessions');
+        return response.data;
+    },
+
+    deleteAccount: async () => {
+        const response = await api.delete('/users/me');
+        return response.data;
+    },
+};
+
+// Server API functions
+export const serverAPI = {
+    getTime: async () => {
+        const response = await api.get('/server-time');
         return response.data;
     },
 };

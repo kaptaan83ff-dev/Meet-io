@@ -40,7 +40,7 @@ export default function JoinMeetingCard() {
             </div>
 
             <div className="relative z-10">
-                <form onSubmit={handleJoinMeeting} className="flex gap-2">
+                <form onSubmit={handleJoinMeeting} className="flex flex-wrap gap-2">
                     <input
                         type="text"
                         placeholder="# Enter code"
@@ -59,13 +59,13 @@ export default function JoinMeetingCard() {
                                 setJoinCode(val.toLowerCase());
                             }
                         }}
-                        className="flex-1 bg-black/20 backdrop-blur-md border border-white/10 rounded-xl px-4 text-sm text-white placeholder-blue-100/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
+                        className="flex-1 min-w-0 bg-black/20 backdrop-blur-md border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-blue-100/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
                     // Removed maxLength to allow pasting full URLs
                     />
                     <button
                         type="submit"
                         disabled={isJoining}
-                        className="bg-white text-blue-600 font-bold px-4 py-3 rounded-xl hover:bg-blue-50 transition-colors shadow-lg disabled:opacity-70 flex items-center justify-center min-w-[80px]"
+                        className="bg-white text-blue-600 font-bold px-4 py-3 rounded-xl hover:bg-blue-50 transition-colors shadow-lg disabled:opacity-70 flex items-center justify-center flex-shrink-0"
                     >
                         {isJoining ? (
                             <div className="w-5 h-5 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin"></div>

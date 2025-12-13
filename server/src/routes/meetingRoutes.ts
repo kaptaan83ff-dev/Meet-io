@@ -5,10 +5,13 @@ import {
     getMeeting,
     getMyMeetings,
     getTodayMeetings,
+    getUserMeetingHistory,
     getPendingParticipants,
     admitParticipant,
     denyParticipant,
     toggleWaitingRoom,
+    deleteOldMeetings,
+    inviteToMeeting,
 } from '../controllers/meetingController';
 import { protect } from '../middleware/authMiddleware';
 
@@ -32,6 +35,15 @@ router.get('/my', getMyMeetings);
 
 // Get user's meetings for today
 router.get('/today', getTodayMeetings);
+
+// Get user's meeting history with pagination
+router.get('/history', getUserMeetingHistory);
+
+// Send invites
+router.post('/:code/invite', inviteToMeeting);
+
+// Delete old meetings
+router.delete('/old', deleteOldMeetings);
 
 // Get pending participants (host only)
 router.get('/:code/pending', getPendingParticipants);

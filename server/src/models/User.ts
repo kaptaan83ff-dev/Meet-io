@@ -22,6 +22,8 @@ export interface IUser extends Document {
     avatar: string;
     bio?: string;
     title?: string;
+    googleId?: string;
+    githubId?: string;
     role: 'user' | 'admin';
     sessions: {
         ip?: string;
@@ -70,6 +72,16 @@ const userSchema = new Schema<IUser>(
         title: {
             type: String,
             default: '',
+        },
+        googleId: {
+            type: String,
+            unique: true,
+            sparse: true,
+        },
+        githubId: {
+            type: String,
+            unique: true,
+            sparse: true,
         },
         role: {
             type: String,
