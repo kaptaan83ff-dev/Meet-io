@@ -21,6 +21,9 @@ const app: Application = express();
 // Create HTTP Server
 const httpServer = http.createServer(app);
 
+// Trust Proxy (Required for Render/Vercel/Heroku to detect HTTPS)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
