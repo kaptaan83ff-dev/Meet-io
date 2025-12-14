@@ -1,5 +1,4 @@
-import React from 'react';
-import { Mic, MicOff, Wand2 } from 'lucide-react';
+import { Wand2 } from 'lucide-react';
 
 interface MediaSettingsProps {
     isNoiseFilterEnabled: boolean;

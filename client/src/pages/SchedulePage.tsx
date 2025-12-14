@@ -81,8 +81,7 @@ export default function SchedulePage() {
             setLoading(true);
             const response = await meetingAPI.create({
                 title: title.trim(),
-                date,
-                time,
+                startTime: new Date(`${date}T${time}`).toISOString(),
                 description: description.trim(),
                 duration,
                 settings: { waitingRoom, muteOnEntry },
