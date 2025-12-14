@@ -8,7 +8,7 @@ import { Camera, Shield, User as UserIcon, LogOut, Trash2, Smartphone, Terminal 
 import ImageCropper from '../components/profile/ImageCropper';
 
 export default function ProfilePage() {
-    const { user } = useAuth(); // login is effectively 'setUser' for us if we update the user object
+    const { user, logout } = useAuth(); // login is effectively 'setUser' for us if we update the user object
     const [activeTab, setActiveTab] = useState<'overview' | 'security'>('overview');
 
     // Profile State
@@ -336,12 +336,24 @@ export default function ProfilePage() {
                                                 <Smartphone size={20} className="text-blue-400" />
                                                 Active Sessions
                                             </h3>
-                                            <button
-                                                onClick={handleLogoutAll}
-                                                className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1"
-                                            >
-                                                <LogOut size={14} /> Log Out All Other Devices
-                                            </button>
+                                            <div className="flex gap-3">
+                                                <button
+                                                    onClick={() => {
+                                                        if (window.confirm('Are you sure you want to log out?')) {
+                                                            logout();
+                                                        }
+                                                    }}
+                                                    className="text-xs text-gray-400 hover:text-white flex items-center gap-1 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 hover:bg-white/10 transition-colors"
+                                                >
+                                                    <LogOut size={14} /> Log Out Current Device
+                                                </button>
+                                                <button
+                                                    onClick={handleLogoutAll}
+                                                    className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                                                >
+                                                    <Shield size={14} /> Log Out All Other Devices
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div className="space-y-3">
