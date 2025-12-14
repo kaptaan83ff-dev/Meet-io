@@ -1,6 +1,15 @@
 import { Router } from 'express';
 import passport from 'passport';
-import { register, login, logout, getMe, socialLoginCallback } from '../controllers/authController';
+import {
+    register,
+    login,
+    logout,
+    getMe,
+    verifyEmail,
+    forgotPassword,
+    resetPassword,
+    socialLoginCallback
+} from '../controllers/authController';
 import { protect } from '../middleware/authMiddleware';
 
 const router = Router();
@@ -9,6 +18,9 @@ const router = Router();
 router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', logout);
+router.post('/verify-email/:token', verifyEmail);
+router.post('/forgot-password', forgotPassword);
+router.put('/reset-password/:token', resetPassword);
 
 // Google Auth
 router.get(

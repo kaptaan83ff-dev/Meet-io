@@ -1,7 +1,13 @@
 import nodemailer from 'nodemailer';
 import { env } from '../config/validateEnv';
 
-export const sendEmail = async (to: string, subject: string, html: string) => {
+interface EmailOptions {
+    email: string;
+    subject: string;
+    message: string;
+}
+
+export const sendEmail = async (options: EmailOptions) => {
     // Determine transport based on environment
     // Use proper SMTP in production, or Ethereal/console for dev if no creds
 
@@ -17,9 +23,9 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
     try {
         const info = await transporter.sendMail({
             from: `"Meet-io" <${process.env.SMTP_FROM || 'no-reply@meet-io.com'}>`,
-            to,
-            subject,
-            html,
+            to: options.email,
+            subject: options.subject,
+            html: options.message,
         });
 
         console.log(`📧 Email sent: ${info.messageId}`);
@@ -27,5 +33,6 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
         console.error('❌ Failed to send email:', error);
         // Don't throw by default to prevent crashing the request, 
         // but can be adjusted based on requirements
+        throw error;
     }
 };

@@ -239,9 +239,13 @@ export default function LoginPage() {
                                 </div>
                                 {isLogin && (
                                     <div className="flex justify-end">
-                                        <a href="#" className="text-xs text-blue-500 hover:text-blue-400 font-medium transition-colors">
+                                        <button
+                                            type="button"
+                                            onClick={() => navigate('/forgot-password')}
+                                            className="text-xs text-blue-500 hover:text-blue-400 font-medium transition-colors"
+                                        >
                                             Forgot password?
-                                        </a>
+                                        </button>
                                     </div>
                                 )}
                             </div>

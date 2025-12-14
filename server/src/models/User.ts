@@ -1,6 +1,8 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+import crypto from 'crypto';
+
 // Default avatar URLs (using DiceBear avatars API)
 const DEFAULT_AVATARS = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -31,9 +33,16 @@ export interface IUser extends Document {
         lastActive: Date;
         tokenHash?: string;
     }[];
+    isVerified: boolean;
+    verificationToken?: string;
+    verificationTokenExpires?: Date;
+    resetPasswordToken?: string;
+    resetPasswordExpires?: Date;
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
+    getVerificationToken(): string;
+    getResetPasswordToken(): string;
 }
 
 const userSchema = new Schema<IUser>(
@@ -120,6 +129,40 @@ userSchema.methods.comparePassword = async function (
     } catch (error) {
         return false;
     }
+};
+
+// Generate Verification Token
+userSchema.methods.getVerificationToken = function (): string {
+    // Generate token
+    const token = crypto.randomBytes(20).toString('hex');
+
+    // Hash token and set to verificationToken field
+    this.verificationToken = crypto
+        .createHash('sha256')
+        .update(token)
+        .digest('hex');
+
+    // Set expiration (24 hours)
+    this.verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    return token;
+};
+
+// Generate Password Reset Token
+userSchema.methods.getResetPasswordToken = function (): string {
+    // Generate token
+    const token = crypto.randomBytes(20).toString('hex');
+
+    // Hash token and set to resetPasswordToken field
+    this.resetPasswordToken = crypto
+        .createHash('sha256')
+        .update(token)
+        .digest('hex');
+
+    // Set expiration (10 minutes)
+    this.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    return token;
 };
 
 const User = mongoose.model<IUser>('User', userSchema);
