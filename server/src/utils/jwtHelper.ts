@@ -32,7 +32,7 @@ export const sendTokenResponse = (
     const cookieOptions = {
         httpOnly: true, // Prevents XSS attacks
         secure: env.NODE_ENV === 'production', // HTTPS only in production
-        sameSite: 'strict' as const, // CSRF protection
+        sameSite: env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const, // 'none' for cross-site, 'lax' for local
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
     };
 
