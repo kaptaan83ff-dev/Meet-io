@@ -31,10 +31,10 @@ const sendTokenResponse = (user: any, statusCode: number, res: Response) => {
 
     // Cookie options
     const cookieOptions = {
-        httpOnly: true, // Can't be accessed by JavaScript (security)
-        secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-        sameSite: 'lax' as const, // CSRF protection
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'none' | 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
     };
 
     // Set cookie and send response
