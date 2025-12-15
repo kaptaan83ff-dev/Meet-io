@@ -1,5 +1,5 @@
-
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../context/AuthContext';
 import { userAPI } from '../services/api';
@@ -58,10 +58,18 @@ export default function ProfilePage() {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
             const reader = new FileReader();
-            reader.addEventListener('load', () => {
-                setAvatarSrc(reader.result?.toString() || null);
-                setShowCropper(true);
-            });
+
+            reader.onload = (event) => {
+                if (event.target?.result) {
+                    setAvatarSrc(event.target.result.toString());
+                    setShowCropper(true);
+                }
+            };
+
+            reader.onerror = () => {
+                toast.error('Failed to read image file');
+            };
+
             reader.readAsDataURL(file);
         }
     };
@@ -152,10 +160,10 @@ export default function ProfilePage() {
         <div className="bg-[#0B0E14] text-white h-screen flex overflow-hidden font-['Inter']">
             <Sidebar />
 
-            <main className="flex-1 flex flex-col relative overflow-hidden">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden h-screen">
                 <div className="absolute top-0 left-0 w-full h-[500px] bg-blue-900/10 blur-[120px] pointer-events-none"></div>
 
-                <div className="flex-1 px-4 sm:px-8 py-8 overflow-y-auto z-10 custom-scrollbar">
+                <div className="flex-1 px-4 sm:px-8 py-8 z-10 custom-scrollbar max-w-full">
 
                     {/* Header */}
                     <div className="mb-8">
@@ -196,7 +204,7 @@ export default function ProfilePage() {
                                     ? 'bg-red-500/10 text-red-400 border-red-500/20'
                                     : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                                     }`}>
-                                    {user?.role.toUpperCase()}
+                                    {user?.role?.toUpperCase() || 'USER'}
                                 </div>
                             </div>
                         </div>
@@ -272,7 +280,8 @@ export default function ProfilePage() {
                                             <button
                                                 type="submit"
                                                 disabled={isLoading}
-                                                className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50 shadow-lg shadow-blue-500/20"
+                                                className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 min-h-[48px] flex items-center justify-center rounded-xl font-medium transition-colors disabled:opacity-50 shadow-lg shadow-blue-500/20"
+                                                aria-label="Save profile changes"
                                             >
                                                 {isLoading ? 'Saving...' : 'Save Changes'}
                                             </button>
@@ -322,7 +331,7 @@ export default function ProfilePage() {
                                                 </div>
                                             </div>
                                             <div className="pt-2 flex justify-end">
-                                                <button type="submit" className="bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-xl font-medium transition-colors">
+                                                <button type="submit" className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 min-h-[44px] flex items-center justify-center rounded-xl font-medium transition-colors" aria-label="Update password">
                                                     Update Password
                                                 </button>
                                             </div>
@@ -343,13 +352,15 @@ export default function ProfilePage() {
                                                             logout();
                                                         }
                                                     }}
-                                                    className="text-xs text-gray-400 hover:text-white flex items-center gap-1 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 hover:bg-white/10 transition-colors"
+                                                    className="text-xs text-gray-400 hover:text-white flex items-center gap-1 bg-white/5 px-3 py-2 min-h-[44px] rounded-lg border border-white/5 hover:bg-white/10 transition-colors"
+                                                    aria-label="Log out current device"
                                                 >
                                                     <LogOut size={14} /> Log Out Current Device
                                                 </button>
                                                 <button
                                                     onClick={handleLogoutAll}
-                                                    className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                                                    className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 bg-red-500/10 px-3 py-2 min-h-[44px] rounded-lg border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                                                    aria-label="Log out all other devices"
                                                 >
                                                     <Shield size={14} /> Log Out All Other Devices
                                                 </button>
@@ -361,7 +372,7 @@ export default function ProfilePage() {
                                                 <p className="text-gray-500 text-sm">No active session data found.</p>
                                             ) : (
                                                 sessions.map((session, idx) => (
-                                                    <div key={idx} className="flex items-center justify-between p-3 bg-[#0B0E14] rounded-xl border border-white/5">
+                                                    <div key={idx} className="flex items-center justify-between p-3 bg-[#0B0E14] rounded-xl border border-white/5 group">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
                                                                 <Terminal size={20} />
@@ -375,11 +386,30 @@ export default function ProfilePage() {
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        {session.current && (
-                                                            <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded-full border border-green-500/20">
-                                                                Current
-                                                            </span>
-                                                        )}
+                                                        <div className="flex items-center gap-2">
+                                                            {session.current ? (
+                                                                <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded-full border border-green-500/20">
+                                                                    Current
+                                                                </span>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        if (!session._id) return;
+                                                                        try {
+                                                                            await userAPI.revokeSession(session._id);
+                                                                            toast.success('Session revoked');
+                                                                            fetchSessions();
+                                                                        } catch (err) {
+                                                                            toast.error('Failed to revoke session');
+                                                                        }
+                                                                    }}
+                                                                    className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                                    title="Revoke Session"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 ))
                                             )}
@@ -405,7 +435,8 @@ export default function ProfilePage() {
                                             <button
                                                 disabled={deleteConfirm !== 'DELETE'}
                                                 onClick={handleDeleteAccount}
-                                                className="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="bg-red-600 hover:bg-red-500 text-white px-6 py-3 min-h-[48px] flex items-center justify-center rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                aria-label="Delete account permanently"
                                             >
                                                 Delete Account
                                             </button>
@@ -420,12 +451,13 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Cropper Modal */}
-                {showCropper && avatarSrc && (
+                {showCropper && avatarSrc && createPortal(
                     <ImageCropper
                         imageSrc={avatarSrc}
                         onCancel={() => setShowCropper(false)}
                         onCropComplete={handleCropComplete}
-                    />
+                    />,
+                    document.body
                 )}
             </main>
         </div>

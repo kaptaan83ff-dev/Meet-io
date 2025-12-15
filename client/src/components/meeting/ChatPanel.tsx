@@ -51,12 +51,20 @@ export default function ChatPanel({
         });
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="absolute right-4 top-4 bottom-4 w-80 bg-[#1a1f2e]/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl flex flex-col z-50 overflow-hidden">
+        <div className={`
+            fixed md:absolute inset-0 md:inset-auto
+            md:right-4 md:top-4 md:bottom-4 
+            w-full md:w-80
+            bg-[#1a1f2e]/95 backdrop-blur-xl 
+            rounded-none md:rounded-2xl 
+            border-0 md:border md:border-white/10
+            shadow-2xl flex flex-col z-50 overflow-hidden
+            transform transition-transform duration-300 ease-in-out
+            ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+        `}>
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
+            <div className="flex items-center justify-between p-4 sm:p-4 border-b border-white/10">
                 <div className="flex items-center gap-2">
                     <MessageSquare size={20} className="text-blue-400" />
                     <span className="font-semibold text-white">Chat</span>
@@ -66,7 +74,8 @@ export default function ChatPanel({
                 </div>
                 <button
                     onClick={onClose}
-                    className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                    className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+                    aria-label="Close chat"
                 >
                     <X size={18} className="text-gray-400" />
                 </button>
@@ -87,8 +96,8 @@ export default function ChatPanel({
                         >
                             <div
                                 className={`max-w-[85%] rounded-2xl px-4 py-2 ${msg.userId === userId
-                                        ? 'bg-blue-600 text-white rounded-br-md'
-                                        : 'bg-white/10 text-white rounded-bl-md'
+                                    ? 'bg-blue-600 text-white rounded-br-md'
+                                    : 'bg-white/10 text-white rounded-bl-md'
                                     }`}
                             >
                                 {msg.userId !== userId && (
@@ -120,7 +129,8 @@ export default function ChatPanel({
                     <button
                         type="submit"
                         disabled={!newMessage.trim()}
-                        className="p-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl transition-colors"
+                        className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl transition-colors"
+                        aria-label="Send message"
                     >
                         <Send size={18} className="text-white" />
                     </button>

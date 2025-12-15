@@ -25,6 +25,19 @@ const envSchema = z.object({
 
     // Client URL for CORS
     CLIENT_URL: z.string().url('CLIENT_URL must be a valid URL').default('http://localhost:5173'),
+
+    // SMTP Configuration
+    SMTP_HOST: z.string().optional(),
+    SMTP_PORT: z.string().optional(),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASS: z.string().optional(),
+    SMTP_FROM: z.string().optional(),
+
+    // OAuth Configuration
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    GITHUB_CLIENT_ID: z.string().optional(),
+    GITHUB_CLIENT_SECRET: z.string().optional(),
 });
 
 // Export the validated environment variables type
@@ -46,7 +59,7 @@ export function validateEnv(): Env {
     } catch (error) {
         if (error instanceof z.ZodError) {
             console.error('❌ Environment validation failed:');
-            (error as any).errors.forEach((err: z.ZodIssue) => {
+            error.issues.forEach((err: z.ZodIssue) => {
                 console.error(`  - ${err.path.join('.')}: ${err.message}`);
             });
             throw new Error('Invalid environment configuration');

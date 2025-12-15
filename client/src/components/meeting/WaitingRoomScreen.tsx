@@ -4,7 +4,7 @@ import { getSocket } from '../../services/socket';
 
 interface WaitingRoomScreenProps {
     meetingTitle: string;
-    onAdmitted: (token: string) => void;
+    onAdmitted: (token: string, liveKitUrl?: string) => void;
     onDenied: () => void;
 }
 
@@ -16,8 +16,8 @@ export default function WaitingRoomScreen({
     useEffect(() => {
         const socket = getSocket();
 
-        const handleAdmitted = (data: { token: string }) => {
-            onAdmitted(data.token);
+        const handleAdmitted = (data: { token: string; liveKitUrl?: string }) => {
+            onAdmitted(data.token, data.liveKitUrl);
         };
 
         const handleDenied = () => {

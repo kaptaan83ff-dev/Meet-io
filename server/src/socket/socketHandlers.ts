@@ -73,8 +73,12 @@ export const initializeSocketIO = (io: Server) => {
             const targetSocketId = userSocketMap.get(participantId);
 
             if (targetSocketId) {
-                // Send token directly to the admitted user
-                io.to(targetSocketId).emit('admitted', { roomId, token });
+                // Send token AND liveKitUrl directly to the admitted user
+                io.to(targetSocketId).emit('admitted', {
+                    roomId,
+                    token,
+                    liveKitUrl: process.env.LIVEKIT_URL || 'wss://meet-io-wd7xbiqz.livekit.cloud'
+                });
                 console.log(`User ${participantId} admitted to ${roomId}`);
             }
         });
@@ -100,6 +104,12 @@ export const initializeSocketIO = (io: Server) => {
         socket.on('toggle-hand', (data: ToggleHandData) => {
             const { roomId } = data;
             io.to(roomId).emit('hand-toggled', data);
+        });
+
+        // Emoji Reaction
+        socket.on('reaction', (data: { roomId: string; userId: string; emoji: string }) => {
+            const { roomId } = data;
+            io.to(roomId).emit('reaction', data);
         });
 
         socket.on('disconnect', () => {

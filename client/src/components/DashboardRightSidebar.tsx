@@ -99,7 +99,7 @@ export default function DashboardRightSidebar() {
     };
 
     return (
-        <aside className="hidden xl:flex w-[380px] bg-gradient-to-b from-[#13161f]/95 to-[#0B0E14]/95 backdrop-blur-xl border-l border-white/5 flex-col z-20 h-full overflow-hidden">
+        <aside className="hidden xl:flex w-[435px] bg-gradient-to-b from-[#13161f]/95 to-[#0B0E14]/95 backdrop-blur-xl border-l border-white/5 flex-col z-20 h-full overflow-hidden">
 
             {/* Header */}
             <div className="p-6 border-b border-white/5">
@@ -122,8 +122,8 @@ export default function DashboardRightSidebar() {
                     <button
                         onClick={() => setActiveTab('today')}
                         className={`flex-1 px-4 py-2 rounded-lg transition-all ${activeTab === 'today'
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         Today
@@ -131,8 +131,8 @@ export default function DashboardRightSidebar() {
                     <button
                         onClick={() => setActiveTab('upcoming')}
                         className={`flex-1 px-4 py-2 rounded-lg transition-all ${activeTab === 'upcoming'
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         Upcoming
@@ -213,10 +213,10 @@ export default function DashboardRightSidebar() {
                                         onClick={() => joinStatus.joinable && navigate(`/meeting/${meeting.code}`)}
                                         disabled={!joinStatus.joinable}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${joinStatus.joinable
-                                                ? 'bg-green-500 hover:bg-green-400 text-white shadow-lg shadow-green-500/20'
-                                                : joinStatus.variant === 'ended'
-                                                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                                                    : 'bg-white/5 text-gray-400 cursor-default'
+                                            ? 'bg-green-500 hover:bg-green-400 text-white shadow-lg shadow-green-500/20'
+                                            : joinStatus.variant === 'ended'
+                                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                                                : 'bg-white/5 text-gray-400 cursor-default'
                                             }`}
                                     >
                                         {joinStatus.label}

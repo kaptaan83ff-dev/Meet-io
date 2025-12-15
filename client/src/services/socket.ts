@@ -3,7 +3,8 @@ import { io, Socket } from 'socket.io-client';
 // Socket.io Singleton Service
 // Maintains a single connection instance across the application
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+// Remove trailing slash and /api to get the root URL
+const SOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '').replace(/\/api$/, '');
 
 let socket: Socket | null = null;
 

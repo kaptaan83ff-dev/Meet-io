@@ -1,170 +1,100 @@
+/**
+ * User Model - Simple and Clean
+ * 
+ * This model stores user data for authentication.
+ * Password is hashed before saving using bcrypt.
+ */
+
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-import crypto from 'crypto';
-
-// Default avatar URLs (using DiceBear avatars API)
-const DEFAULT_AVATARS = [
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Mittens',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Cuddles',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Fluffy',
-];
-
-// Get a random default avatar
-const getRandomAvatar = (): string => {
-    return DEFAULT_AVATARS[Math.floor(Math.random() * DEFAULT_AVATARS.length)];
-};
-
+// TypeScript interface for User document
 export interface IUser extends Document {
     name: string;
     email: string;
     password: string;
-    avatar: string;
-    bio?: string;
+    avatar?: string;
+    role?: string;
     title?: string;
-    googleId?: string;
-    githubId?: string;
-    role: 'user' | 'admin';
-    sessions: {
-        ip?: string;
-        userAgent?: string;
-        lastActive: Date;
-        tokenHash?: string;
-    }[];
-    isVerified: boolean;
-    verificationToken?: string;
-    verificationTokenExpires?: Date;
-    resetPasswordToken?: string;
-    resetPasswordExpires?: Date;
+    bio?: string;
+    sessions?: any[];
     createdAt: Date;
-    updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
-    getVerificationToken(): string;
-    getResetPasswordToken(): string;
 }
 
+// Mongoose Schema
 const userSchema = new Schema<IUser>(
     {
         name: {
             type: String,
-            required: [true, 'Please provide a name'],
+            required: [true, 'Name is required'],
             trim: true,
-            maxlength: [50, 'Name cannot be more than 50 characters'],
+            maxlength: [50, 'Name cannot exceed 50 characters'],
         },
         email: {
             type: String,
-            required: [true, 'Please provide an email'],
+            required: [true, 'Email is required'],
             unique: true,
             lowercase: true,
             trim: true,
-            match: [
-                /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-                'Please provide a valid email',
-            ],
+            match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'],
         },
         password: {
             type: String,
-            required: [true, 'Please provide a password'],
-            minlength: [8, 'Password must be at least 8 characters'],
-            select: false, // Don't return password by default
+            required: [true, 'Password is required'],
+            minlength: [6, 'Password must be at least 6 characters'],
+            select: false, // Don't include password in queries by default
         },
         avatar: {
             type: String,
-            default: getRandomAvatar,
-        },
-        bio: {
-            type: String,
-            default: '',
-        },
-        title: {
-            type: String,
-            default: '',
-        },
-        googleId: {
-            type: String,
-            unique: true,
-            sparse: true,
-        },
-        githubId: {
-            type: String,
-            unique: true,
-            sparse: true,
+            default: null,
         },
         role: {
             type: String,
             enum: ['user', 'admin'],
             default: 'user',
         },
-        sessions: [{
-            ip: String,
-            userAgent: String,
-            lastActive: Date,
-            tokenHash: String
-        }],
+        title: {
+            type: String,
+            default: null,
+        },
+        bio: {
+            type: String,
+            default: null,
+        },
+        sessions: {
+            type: [Schema.Types.Mixed],
+            default: [],
+        },
     },
     {
-        timestamps: true,
+        timestamps: true, // Adds createdAt and updatedAt
     }
 );
 
-// Hash password before saving
+/**
+ * Pre-save middleware: Hash password before saving
+ * Note: For async middleware, mongoose handles the promise automatically
+ */
 userSchema.pre('save', async function () {
-    // Only hash the password if it's modified or new
+    // Only hash if password is new or modified
     if (!this.isModified('password')) {
         return;
     }
 
+    // Generate salt and hash password
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Method to compare password
-userSchema.methods.comparePassword = async function (
-    candidatePassword: string
-): Promise<boolean> {
-    try {
-        return await bcrypt.compare(candidatePassword, this.password);
-    } catch (error) {
-        return false;
-    }
+/**
+ * Compare entered password with stored hash
+ * Usage: const isMatch = await user.comparePassword('entered_password');
+ */
+userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+    return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Generate Verification Token
-userSchema.methods.getVerificationToken = function (): string {
-    // Generate token
-    const token = crypto.randomBytes(20).toString('hex');
-
-    // Hash token and set to verificationToken field
-    this.verificationToken = crypto
-        .createHash('sha256')
-        .update(token)
-        .digest('hex');
-
-    // Set expiration (24 hours)
-    this.verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    return token;
-};
-
-// Generate Password Reset Token
-userSchema.methods.getResetPasswordToken = function (): string {
-    // Generate token
-    const token = crypto.randomBytes(20).toString('hex');
-
-    // Hash token and set to resetPasswordToken field
-    this.resetPasswordToken = crypto
-        .createHash('sha256')
-        .update(token)
-        .digest('hex');
-
-    // Set expiration (10 minutes)
-    this.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000);
-
-    return token;
-};
-
+// Export the model
 const User = mongoose.model<IUser>('User', userSchema);
-
 export default User;

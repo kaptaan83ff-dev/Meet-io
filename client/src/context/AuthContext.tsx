@@ -1,19 +1,32 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { authAPI } from '../services/api';
+/**
+ * Auth Context - Simple and Clean
+ * 
+ * Provides authentication state to the entire app.
+ * Uses React Context to share user data across components.
+ */
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import toast from 'react-hot-toast';
 
+// API base URL
+// API base URL
+// Remove trailing slash and optional /api suffix to get clean root
+const BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '').replace(/\/api$/, '');
+const API_URL = `${BASE}/api`;
+
+// User type
 interface User {
     _id: string;
     name: string;
     email: string;
-    avatar: string;
-    role: 'user' | 'admin';
-    bio?: string;
+    avatar?: string;
+    role?: string;
     title?: string;
-    createdAt: string;
-    updatedAt: string;
+    bio?: string;
 }
 
+// Context type
 interface AuthContextType {
     user: User | null;
     loading: boolean;
@@ -22,8 +35,13 @@ interface AuthContextType {
     logout: () => Promise<void>;
 }
 
+// Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Custom hook to use auth context
+ * Usage: const { user, login, logout } = useAuth();
+ */
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
@@ -32,80 +50,97 @@ export const useAuth = () => {
     return context;
 };
 
-interface AuthProviderProps {
-    children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+/**
+ * Auth Provider Component
+ * Wrap your app with this to provide auth state everywhere.
+ */
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Fetch current user on mount
+    // Check if user is logged in on app load
     useEffect(() => {
-        const fetchUser = async () => {
+        const checkAuth = async () => {
             try {
-                const data = await authAPI.getMe();
+                const res = await fetch(`${API_URL}/auth/me`, {
+                    credentials: 'include', // Send cookies
+                });
+                const data = await res.json();
+
                 if (data.success) {
                     setUser(data.user);
                 }
-            } catch (error: any) {
-                // User not authenticated, that's okay
+            } catch (error) {
+                // User not logged in, that's okay
                 console.log('Not authenticated');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchUser();
+        checkAuth();
     }, []);
 
-    const login = async (email: string, password: string) => {
-        try {
-            const data = await authAPI.login({ email, password });
-            if (data.success) {
-                setUser(data.user);
-                toast.success(`Welcome back, ${data.user.name}!`);
-            }
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.error || 'Login failed';
-            toast.error(errorMessage);
-            throw error;
-        }
-    };
-
+    /**
+     * Register a new user
+     */
     const register = async (name: string, email: string, password: string) => {
-        try {
-            const data = await authAPI.register({ name, email, password });
-            if (data.success) {
-                setUser(data.user);
-                toast.success(`Welcome, ${data.user.name}!`);
-            }
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.error || 'Registration failed';
-            toast.error(errorMessage);
-            throw error;
+        const res = await fetch(`${API_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ name, email, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            toast.error(data.error || 'Registration failed');
+            throw new Error(data.error);
         }
+
+        setUser(data.user);
+        toast.success(`Welcome, ${data.user.name}!`);
     };
 
+    /**
+     * Login user
+     */
+    const login = async (email: string, password: string) => {
+        const res = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            toast.error(data.error || 'Login failed');
+            throw new Error(data.error);
+        }
+
+        setUser(data.user);
+        toast.success(`Welcome back, ${data.user.name}!`);
+    };
+
+    /**
+     * Logout user
+     */
     const logout = async () => {
-        try {
-            await authAPI.logout();
-            setUser(null);
-            toast.success('Logged out successfully');
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.error || 'Logout failed';
-            toast.error(errorMessage);
-            throw error;
-        }
+        await fetch(`${API_URL}/auth/logout`, {
+            method: 'POST',
+            credentials: 'include',
+        });
+
+        setUser(null);
+        toast.success('Logged out successfully');
     };
 
-    const value = {
-        user,
-        loading,
-        login,
-        register,
-        logout,
-    };
-
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };

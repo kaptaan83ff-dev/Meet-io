@@ -95,7 +95,7 @@ export default function CalendarPage() {
         <div className="flex min-h-screen bg-[#0B0E14]">
             <Sidebar />
 
-            <main className="flex-1 p-6 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden h-screen p-6 max-w-full">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-6">
@@ -105,7 +105,8 @@ export default function CalendarPage() {
                         </div>
                         <button
                             onClick={() => navigate('/schedule')}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors"
+                            className="flex items-center justify-center gap-2 px-4 sm:px-5 py-3 min-h-[48px] bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors font-medium"
+                            aria-label="Schedule a new meeting"
                         >
                             <Plus size={18} />
                             Schedule Meeting

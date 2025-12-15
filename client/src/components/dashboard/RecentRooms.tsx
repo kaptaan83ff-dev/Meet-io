@@ -77,34 +77,40 @@ export default function RecentRooms() {
     }
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="flex gap-4 overflow-x-auto pb-2">
             {meetings.map((meeting) => (
                 <div
                     key={meeting._id}
-                    className="bg-[#1a1f2e]/50 hover:bg-[#1a1f2e]/80 border border-white/5 hover:border-white/10 rounded-2xl p-4 cursor-pointer transition-all duration-200 group"
+                    className="flex-shrink-0 w-64 aspect-square bg-[#1a1f2e]/50 hover:bg-[#1a1f2e]/80 border border-white/5 hover:border-white/10 rounded-2xl p-5 cursor-pointer transition-all duration-200 group flex flex-col justify-between"
                     onClick={() => navigate(`/meeting/${meeting.code}`)}
                 >
-                    <div className="flex items-start justify-between mb-3">
-                        <h4 className="text-white font-medium text-sm truncate flex-1 pr-2 group-hover:text-blue-400 transition-colors">
-                            {meeting.title}
-                        </h4>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${meeting.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                                meeting.status === 'ended' ? 'bg-gray-500/20 text-gray-400' :
-                                    'bg-blue-500/20 text-blue-400'
-                            }`}>
-                            {meeting.status === 'active' ? 'Live' : meeting.status}
-                        </span>
+                    {/* Top section - Title and Status */}
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-start justify-between">
+                            <h4 className="text-white font-semibold text-base line-clamp-2 flex-1 pr-2 group-hover:text-blue-400 transition-colors">
+                                {meeting.title}
+                            </h4>
+                            <span className={`text-xs px-2.5 py-1 rounded-full whitespace-nowrap ${meeting.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                                    meeting.status === 'ended' ? 'bg-gray-500/20 text-gray-400' :
+                                        'bg-blue-500/20 text-blue-400'
+                                }`}>
+                                {meeting.status === 'active' ? 'Live' : meeting.status}
+                            </span>
+                        </div>
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                            <Clock size={12} />
-                            {formatDate(meeting.startTime)} • {formatTime(meeting.startTime)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                            <Users size={12} />
-                            {meeting.participantCount || 1}
-                        </span>
+                    {/* Bottom section - Date/Time and Participants */}
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <Clock size={14} />
+                            <span className="truncate">
+                                {formatDate(meeting.startTime)} • {formatTime(meeting.startTime)}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <Users size={14} />
+                            <span>{meeting.participantCount || 1} participant{meeting.participantCount !== 1 ? 's' : ''}</span>
+                        </div>
                     </div>
                 </div>
             ))}

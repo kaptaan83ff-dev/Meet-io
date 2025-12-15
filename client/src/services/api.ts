@@ -1,8 +1,17 @@
 import axios from 'axios';
 
+// Helper to get clean base URL
+const getBaseUrl = () => {
+    const url = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    // Remove trailing slash and /api if present
+    return url.replace(/\/$/, '').replace(/\/api$/, '');
+};
+
+const BASE_URL = getBaseUrl();
+
 // Create axios instance with default config
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+    baseURL: `${BASE_URL}/api`,
     withCredentials: true, // Enable sending cookies with requests
     headers: {
         'Content-Type': 'application/json',
@@ -166,6 +175,11 @@ export const userAPI = {
 
     getSessions: async () => {
         const response = await api.get('/users/sessions');
+        return response.data;
+    },
+
+    revokeSession: async (sessionId: string) => {
+        const response = await api.post('/users/revoke-session', { sessionId });
         return response.data;
     },
 

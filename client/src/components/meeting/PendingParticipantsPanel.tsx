@@ -57,7 +57,7 @@ export default function PendingParticipantsPanel({
         try {
             setLoading(true);
             const response = await axios.get(
-                `${import.meta.env.VITE_API_URL}/meetings/${roomCode}/pending`,
+                `${(import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '').replace(/\/api$/, '')}/api/meetings/${roomCode}/pending`,
                 { withCredentials: true }
             );
             if (response.data.success) {
@@ -73,7 +73,7 @@ export default function PendingParticipantsPanel({
     const handleAdmit = async (userId: string) => {
         try {
             const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/meetings/admit`,
+                `${(import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '').replace(/\/api$/, '')}/api/meetings/admit`,
                 { code: roomCode, participantId: userId },
                 { withCredentials: true }
             );
@@ -98,7 +98,7 @@ export default function PendingParticipantsPanel({
     const handleDeny = async (userId: string) => {
         try {
             const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/meetings/deny`,
+                `${(import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '').replace(/\/api$/, '')}/api/meetings/deny`,
                 { code: roomCode, participantId: userId },
                 { withCredentials: true }
             );

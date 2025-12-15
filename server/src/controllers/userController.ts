@@ -1,30 +1,19 @@
-
 import { Request, Response } from 'express';
 import User from '../models/User';
 import multer from 'multer';
 import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
-import bcrypt from 'bcryptjs';
 
 // --- Multer Configuration ---
-const storage = multer.memoryStorage(); // Store in memory for sharp processing
+const storage = multer.memoryStorage();
 
 const upload = multer({
     storage,
     limits: {
         fileSize: 5 * 1024 * 1024, // 5MB limit
     },
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png|webp/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-
-        if (mimetype && extname) {
-            return cb(null, true);
-        }
-        cb(new Error('Only image files are allowed!'));
-    },
+    // Remove strict fileFilter for cropped blobs
 });
 
 export const uploadMiddleware = upload.single('avatar');
@@ -54,34 +43,23 @@ export const uploadAvatar = async (req: Request, res: Response) => {
             return;
         }
 
-        // Generate filename: avatar-<userId>-<timestamp>.png
-        const filename = `avatar-${user._id}-${Date.now()}.png`;
-
-        // Define upload path (client/public/uploads)
-        // Adjust path based on your project structure. Assuming server/src/controllers -> navigate up to client
-        const uploadDir = path.join(__dirname, '../../../client/public/uploads');
-
-        // Ensure directory exists
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-
-        // Resize and save image
-        await sharp(req.file.buffer)
+        // Resize image and convert to base64
+        const resizedImageBuffer = await sharp(req.file.buffer)
             .resize(200, 200)
             .toFormat('png')
-            .toFile(path.join(uploadDir, filename));
+            .toBuffer();
 
-        // Update user avatar URL
-        // URL should be accessible from frontend, e.g., /uploads/filename
-        const avatarUrl = `/uploads/${filename}`;
-        user.avatar = avatarUrl;
+        // Convert to base64 data URL
+        const base64Image = `data:image/png;base64,${resizedImageBuffer.toString('base64')}`;
+
+        // Update user avatar (store as base64)
+        user.avatar = base64Image;
         await user.save();
 
         res.status(200).json({
             success: true,
             message: 'Avatar uploaded',
-            avatar: avatarUrl,
+            avatar: base64Image,
         });
     } catch (error: any) {
         console.error('Avatar upload error:', error);
@@ -304,6 +282,48 @@ export const deleteAccount = async (req: Request, res: Response) => {
         res.status(500).json({
             success: false,
             error: error.message || 'Server Error',
+        });
+    }
+};
+/**
+ * @desc    Revoke a specific session
+ * @route   POST /api/users/revoke-session
+ * @access  Private
+ */
+export const revokeSession = async (req: Request, res: Response) => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, error: 'Not authorized' });
+            return;
+        }
+
+        const { sessionId } = req.body;
+        const user = await User.findById((req.user as any)._id);
+
+        if (!user) {
+            res.status(404).json({ success: false, error: 'User not found' });
+            return;
+        }
+
+        const initialLength = user.sessions.length;
+        user.sessions = user.sessions.filter(s => s._id && s._id.toString() !== sessionId);
+
+        if (user.sessions.length === initialLength) {
+            res.status(404).json({ success: false, error: 'Session not found' });
+            return;
+        }
+
+        await user.save({ validateBeforeSave: false });
+
+        res.status(200).json({
+            success: true,
+            message: 'Session revoked',
+            sessions: user.sessions
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Server Error'
         });
     }
 };

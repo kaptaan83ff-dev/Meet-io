@@ -27,8 +27,7 @@ app.set('trust proxy', 1);
 // Security middleware
 app.use(helmet());
 
-// Passport Config
-import './config/passport';
+// Note: Passport removed - using simple JWT auth now
 
 // Webhook Route - MUST be defined before body parsers to capture raw body
 // Signature verification requires the raw body buffer
@@ -63,18 +62,21 @@ const io = new Server(httpServer, {
     }
 });
 
-// Redis Adapter Setup
-const pubClient = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
-const subClient = pubClient.duplicate();
-
-Promise.all([pubClient.connect(), subClient.connect()])
-    .then(() => {
-        io.adapter(createAdapter(pubClient, subClient));
-        console.log('Redis Adapter connected successfully');
-    })
-    .catch((err) => {
-        console.error('Redis connection failed:', err);
-    });
+// Redis Adapter Setup (optional)
+if (process.env.REDIS_URL) {
+    const pubClient = createClient({ url: process.env.REDIS_URL });
+    const subClient = pubClient.duplicate();
+    Promise.all([pubClient.connect(), subClient.connect()])
+        .then(() => {
+            io.adapter(createAdapter(pubClient, subClient));
+            console.log('Redis Adapter connected successfully');
+        })
+        .catch((err) => {
+            console.error('Redis connection failed:', err);
+        });
+} else {
+    console.log('Redis not configured; proceeding without Redis adapter');
+}
 
 // Setup Socket Handlers
 initializeSocketIO(io);

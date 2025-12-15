@@ -1,32 +1,91 @@
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+/**
+ * Login Page - Matching authSystem.jsx Design
+ * 
+ * Premium split-screen layout with:
+ * - Orange accent "instantly" text
+ * - Feature cards (New Meeting, Join)
+ * - Grid background pattern
+ * - Social login buttons
+ */
+
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Github, Chrome, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
-// --- Components ---
-
-interface SocialButtonProps {
-    icon: React.ElementType;
+// Input Field Component with focus states
+const InputField = ({
+    label,
+    type,
+    placeholder,
+    icon: Icon,
+    value,
+    onChange
+}: {
     label: string;
-    onClick: () => void;
-    colorClass: string;
-}
+    type: string;
+    placeholder: string;
+    icon: React.ComponentType<{ className?: string }>;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) => {
+    const [isFocused, setIsFocused] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
-const SocialButton = ({ icon: Icon, label, onClick, colorClass }: SocialButtonProps) => (
-    <button
-        type="button"
-        onClick={onClick}
-        className={`group relative flex items-center justify-center w-full py-3 px-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-300 ease-out active:scale-[0.98] ${colorClass}`}
-    >
-        <Icon className="w-5 h-5 mr-3 transition-transform group-hover:scale-110" />
-        <span className="font-medium text-slate-200 text-sm tracking-wide">{label}</span>
-    </button>
-);
+    const isPassword = type === 'password';
+    const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
-const FeatureCard = ({ title, subtitle, gradient, icon: Icon, delay }: any) => (
+    return (
+        <div className="space-y-2">
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">
+                {label}
+            </label>
+            <div
+                className={`relative flex items-center bg-[#1E2330] rounded-xl border transition-all duration-300 ${isFocused
+                    ? 'border-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.1)]'
+                    : 'border-white/5 hover:border-white/10'
+                    }`}
+            >
+                <div className="pl-4 text-slate-500">
+                    <Icon className={`w-5 h-5 transition-colors ${isFocused ? 'text-blue-500' : ''}`} />
+                </div>
+                <input
+                    type={inputType}
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={onChange}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    className="w-full bg-transparent border-none text-white placeholder-slate-600 px-4 py-3.5 focus:outline-none focus:ring-0 text-sm font-medium"
+                />
+                {isPassword && (
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="pr-4 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                    >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// Feature Card Component
+const FeatureCard = ({
+    title,
+    subtitle,
+    gradient,
+    icon: Icon
+}: {
+    title: string;
+    subtitle: string;
+    gradient: string;
+    icon: React.ComponentType<{ className?: string }>;
+}) => (
     <div
-        className={`relative overflow-hidden rounded-2xl p-6 ${gradient} transform hover:-translate-y-1 transition-all duration-500 shadow-xl cursor-default group animate-in fade-in slide-in-from-bottom-4`}
-        style={{ animationDelay: `${delay}ms`, animationFillMode: 'backwards' }}
+        className={`relative overflow-hidden rounded-2xl p-6 ${gradient} transform hover:-translate-y-1 transition-all duration-500 shadow-xl cursor-default group`}
     >
         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Icon className="w-24 h-24" />
@@ -42,20 +101,18 @@ const FeatureCard = ({ title, subtitle, gradient, icon: Icon, delay }: any) => (
 );
 
 export default function LoginPage() {
+    const navigate = useNavigate();
+    const { login, register } = useAuth();
+
     const [isLogin, setIsLogin] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        password: '',
+        password: ''
     });
 
-    const { login, register } = useAuth();
-    const navigate = useNavigate();
-
-    const handleSubmit = async (e: FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
@@ -65,7 +122,7 @@ export default function LoginPage() {
             } else {
                 await register(formData.name, formData.email, formData.password);
             }
-            navigate('/dashboard');
+            navigate('/');
         } catch (error) {
             console.error('Auth error:', error);
         } finally {
@@ -78,12 +135,6 @@ export default function LoginPage() {
         setFormData({ name: '', email: '', password: '' });
     };
 
-    const handleSocialLogin = (provider: 'google' | 'github') => {
-        // Redirect to backend auth endpoint
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-        window.location.href = `${apiUrl}/auth/${provider}`;
-    };
-
     return (
         <div className="min-h-screen bg-[#0B0E14] flex items-center justify-center p-4 lg:p-8 font-sans selection:bg-orange-500/30 selection:text-orange-200">
 
@@ -93,23 +144,48 @@ export default function LoginPage() {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-orange-600/10 rounded-full blur-[120px] mix-blend-screen animate-pulse" style={{ animationDuration: '7s' }} />
             </div>
 
-            <div className="w-full max-w-[1100px] bg-[#151921] rounded-[2.5rem] shadow-2xl border border-white/5 overflow-hidden flex flex-col lg:flex-row relative z-10 min-h-[700px]">
+            <div className="w-full max-w-[1100px] bg-[#151921] rounded-[2.5rem] shadow-2xl border border-white/5 overflow-hidden flex flex-col lg:flex-row relative z-10 min-h-[600px] lg:min-h-[700px]">
 
-                {/* LEFT SIDE: Visual Brand Area */}
-                <div className="lg:w-1/2 relative bg-[#0F1218] p-12 flex flex-col justify-between overflow-hidden">
+                {/* MOBILE ONLY: Condensed Branding Header */}
+                <div className="lg:hidden bg-[#0F1218] p-6 border-b border-white/5">
+                    <Link to="/" className="flex items-center gap-3 mb-4">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-blue-500 rounded-xl animate-ping opacity-75"></div>
+                            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M4.5 4.5a3 3 0 00-3 3v9a3 3 0 003 3h8.25a3 3 0 003-3v-9a3 3 0 00-3-3H4.5zM19.94 18.75l-2.69-2.69V7.94l2.69-2.69c.94-.94 2.56-.27 2.56 1.06v11.38c0 1.33-1.62 2-2.56 1.06z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                            Meet-io<span className="text-blue-500">.</span>
+                        </span>
+                    </Link>
+                    <h1 className="text-2xl font-bold text-white leading-tight">
+                        Connect with your team, <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">instantly.</span>
+                    </h1>
+                </div>
+
+                {/* DESKTOP ONLY: Full Visual Brand Area */}
+                <div className="hidden lg:flex lg:w-1/2 relative bg-[#0F1218] p-12 flex-col justify-between overflow-hidden">
                     {/* Decorative Grid */}
                     <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)]"></div>
 
                     <div className="relative z-10">
-                        {/* Logo */}
-                        <div className="flex items-center gap-3 mb-12">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                <div className="w-5 h-3 border-2 border-white rounded-sm" />
+                        {/* Logo / Brand Name */}
+                        <Link to="/" className="flex items-center gap-3 mb-12">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-blue-500 rounded-xl animate-ping opacity-75"></div>
+                                <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M4.5 4.5a3 3 0 00-3 3v9a3 3 0 003 3h8.25a3 3 0 003-3v-9a3 3 0 00-3-3H4.5zM19.94 18.75l-2.69-2.69V7.94l2.69-2.69c.94-.94 2.56-.27 2.56 1.06v11.38c0 1.33-1.62 2-2.56 1.06z" />
+                                    </svg>
+                                </div>
                             </div>
                             <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                                Meet.io<span className="text-blue-500">.</span>
+                                Meet-io<span className="text-blue-500">.</span>
                             </span>
-                        </div>
+                        </Link>
 
                         {/* Hero Text */}
                         <div className="space-y-6 mb-12">
@@ -124,14 +200,13 @@ export default function LoginPage() {
                             </p>
                         </div>
 
-                        {/* Floating Cards simulating the Dashboard UI */}
+                        {/* Feature Cards */}
                         <div className="grid grid-cols-1 gap-4 max-w-sm">
                             <FeatureCard
                                 title="New Meeting"
                                 subtitle="Start an instant meeting"
                                 gradient="bg-gradient-to-br from-orange-500 to-red-600"
                                 icon={CheckCircle2}
-                                delay={100}
                             />
                             <div className="flex gap-4">
                                 <div className="flex-1">
@@ -140,22 +215,20 @@ export default function LoginPage() {
                                         subtitle="Via code"
                                         gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
                                         icon={ArrowRight}
-                                        delay={200}
                                     />
                                 </div>
-                                {/* Simplified mock card for layout balance */}
-                                <div className="w-16 rounded-2xl bg-[#1E2330] border border-white/5 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '300ms' }}></div>
+                                <div className="w-16 rounded-2xl bg-[#1E2330] border border-white/5"></div>
                             </div>
                         </div>
                     </div>
 
                     <div className="relative z-10 mt-12 text-xs text-slate-500 font-medium">
-                        © 2025 Meet.io Inc. All rights reserved.
+                        © 2025 Meet-io Inc. All rights reserved.
                     </div>
                 </div>
 
-                {/* RIGHT SIDE: Authentication Form */}
-                <div className="lg:w-1/2 p-8 lg:p-16 flex flex-col justify-center bg-[#151921]">
+                {/* Authentication Form - Prioritized on mobile */}
+                <div className="flex-1 lg:w-1/2 p-6 sm:p-8 lg:p-16 flex flex-col justify-center bg-[#151921]">
                     <div className="max-w-md w-full mx-auto">
 
                         {/* Header */}
@@ -174,87 +247,40 @@ export default function LoginPage() {
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {!isLogin && (
                                 <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-                                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">
-                                        Full Name
-                                    </label>
-                                    <div className="relative flex items-center bg-[#1E2330] rounded-xl border border-white/5 hover:border-white/10 focus-within:border-blue-500 focus-within:shadow-[0_0_0_4px_rgba(59,130,246,0.1)] transition-all mt-2">
-                                        <div className="pl-4 text-slate-500">
-                                            <User className="w-5 h-5" />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. Sarah Smith"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            required={!isLogin}
-                                            className="w-full bg-transparent border-none text-white placeholder-slate-600 px-4 py-3.5 focus:outline-none text-sm font-medium"
-                                        />
-                                    </div>
+                                    <InputField
+                                        label="Full Name"
+                                        type="text"
+                                        placeholder="username"
+                                        icon={User}
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    />
                                 </div>
                             )}
 
-                            <div>
-                                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">
-                                    Email Address
-                                </label>
-                                <div className="relative flex items-center bg-[#1E2330] rounded-xl border border-white/5 hover:border-white/10 focus-within:border-blue-500 focus-within:shadow-[0_0_0_4px_rgba(59,130,246,0.1)] transition-all mt-2">
-                                    <div className="pl-4 text-slate-500">
-                                        <Mail className="w-5 h-5" />
-                                    </div>
-                                    <input
-                                        type="email"
-                                        placeholder="name@company.com"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        required
-                                        className="w-full bg-transparent border-none text-white placeholder-slate-600 px-4 py-3.5 focus:outline-none text-sm font-medium"
-                                    />
-                                </div>
-                            </div>
+                            <InputField
+                                label="Email Address"
+                                type="email"
+                                placeholder="name@company.com"
+                                icon={Mail}
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            />
 
-                            <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">
-                                    Password
-                                </label>
-                                <div className="relative flex items-center bg-[#1E2330] rounded-xl border border-white/5 hover:border-white/10 focus-within:border-blue-500 focus-within:shadow-[0_0_0_4px_rgba(59,130,246,0.1)] transition-all">
-                                    <div className="pl-4 text-slate-500">
-                                        <Lock className="w-5 h-5" />
-                                    </div>
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        placeholder="••••••••"
-                                        value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        required
-                                        minLength={8}
-                                        className="w-full bg-transparent border-none text-white placeholder-slate-600 px-4 py-3.5 focus:outline-none text-sm font-medium"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="pr-4 text-slate-500 hover:text-slate-300 transition-colors"
-                                    >
-                                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                    </button>
-                                </div>
-                                {isLogin && (
-                                    <div className="flex justify-end">
-                                        <button
-                                            type="button"
-                                            onClick={() => navigate('/forgot-password')}
-                                            className="text-xs text-blue-500 hover:text-blue-400 font-medium transition-colors"
-                                        >
-                                            Forgot password?
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                            <InputField
+                                label="Password"
+                                type="password"
+                                placeholder="••••••••"
+                                icon={Lock}
+                                value={formData.password}
+                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            />
 
-                            {/* Submit Button */}
+                            {/* Primary Action Button */}
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold text-base shadow-lg shadow-blue-500/25 transform transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full py-4 px-6 min-h-[48px] rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold text-base shadow-lg shadow-blue-500/25 transform transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {isLoading ? (
                                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -279,22 +305,6 @@ export default function LoginPage() {
                             </div>
                         </div>
 
-                        {/* Social Login */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <SocialButton
-                                icon={Chrome}
-                                label="Google"
-                                onClick={() => handleSocialLogin('google')}
-                                colorClass="hover:bg-blue-500/10 hover:border-blue-500/30 hover:text-white"
-                            />
-                            <SocialButton
-                                icon={Github}
-                                label="GitHub"
-                                onClick={() => handleSocialLogin('github')}
-                                colorClass="hover:bg-purple-500/10 hover:border-purple-500/30 hover:text-white"
-                            />
-                        </div>
-
                         {/* Toggle Mode */}
                         <div className="mt-8 text-center">
                             <p className="text-slate-400 text-sm">
@@ -307,6 +317,7 @@ export default function LoginPage() {
                                 </button>
                             </p>
                         </div>
+
                     </div>
                 </div>
             </div>

@@ -30,16 +30,25 @@ export default function ParticipantList({
         }
     }, [pendingParticipants.length, isHost]);
 
-    if (!isOpen) return null;
-
     return (
-        <div className="absolute right-4 top-20 bottom-24 w-80 bg-[#1a1f2e]/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden flex flex-col shadow-2xl z-50 animate-in slide-in-from-right-4 duration-200">
+        <div className={`
+            fixed md:absolute inset-0 md:inset-auto
+            md:right-4 md:top-20 md:bottom-24
+            w-full md:w-80
+            bg-[#1a1f2e]/95 backdrop-blur-xl 
+            border-0 md:border md:border-white/10
+            rounded-none md:rounded-2xl 
+            overflow-hidden flex flex-col shadow-2xl z-50
+            transform transition-transform duration-300 ease-in-out
+            ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+        `}>
             {/* Header */}
             <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
                 <h3 className="font-semibold text-white">People</h3>
                 <button
                     onClick={onClose}
-                    className="p-1 hover:bg-white/10 rounded-full transition-colors"
+                    className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-white/10 rounded-full transition-colors"
+                    aria-label="Close participants list"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -53,7 +62,7 @@ export default function ParticipantList({
                 <div className="flex p-1 bg-black/20 m-4 rounded-xl">
                     <button
                         onClick={() => setActiveTab('in-meeting')}
-                        className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'in-meeting'
+                        className={`flex-1 py-2.5 min-h-[44px] text-sm font-medium rounded-lg transition-all ${activeTab === 'in-meeting'
                             ? 'bg-blue-600 text-white shadow-lg'
                             : 'text-gray-400 hover:text-white'
                             }`}
@@ -62,7 +71,7 @@ export default function ParticipantList({
                     </button>
                     <button
                         onClick={() => setActiveTab('waiting')}
-                        className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2 ${activeTab === 'waiting'
+                        className={`flex-1 py-2.5 min-h-[44px] text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2 ${activeTab === 'waiting'
                             ? 'bg-blue-600 text-white shadow-lg'
                             : 'text-gray-400 hover:text-white'
                             }`}
@@ -150,13 +159,15 @@ export default function ParticipantList({
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => onAdmit(p.userId, p.userName || p.name)}
-                                            className="flex-1 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-lg text-xs font-medium transition-colors border border-green-500/20"
+                                            className="flex-1 py-2.5 min-h-[44px] bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-lg text-sm font-medium transition-colors border border-green-500/20"
+                                            aria-label="Admit participant"
                                         >
                                             Admit
                                         </button>
                                         <button
                                             onClick={() => onDeny(p.userId, p.userName || p.name)}
-                                            className="flex-1 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-xs font-medium transition-colors border border-red-500/20"
+                                            className="flex-1 py-2.5 min-h-[44px] bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-sm font-medium transition-colors border border-red-500/20"
+                                            aria-label="Deny participant"
                                         >
                                             Deny
                                         </button>

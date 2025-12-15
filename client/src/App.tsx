@@ -67,7 +67,7 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/landing" element={<LandingPage />} />
-          <Route path="/landing" element={<LandingPage />} />
+
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />

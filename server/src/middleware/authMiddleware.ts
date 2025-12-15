@@ -1,69 +1,55 @@
+/**
+ * Auth Middleware - Simple and Clean
+ * 
+ * Protects routes by verifying JWT from cookie.
+ * Attaches user to req.user if authenticated.
+ */
 
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../utils/jwtHelper';
-import User, { IUser } from '../models/User';
+import jwt from 'jsonwebtoken';
+import User from '../models/User';
+
+// Extend Express Request to include user
+declare global {
+    namespace Express {
+        interface Request {
+            user?: any;
+        }
+    }
+}
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 /**
  * Protect routes - require authentication
+ * Usage: router.get('/protected', protect, handler);
  */
-export const protect = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-): Promise<void> => {
+export const protect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        let token: string | undefined;
-
-        // Check for token in cookie
-        if (req.cookies && req.cookies.token) {
-            token = req.cookies.token;
-        }
-        // Also check Authorization header for non-browser clients
-        else if (req.headers.authorization?.startsWith('Bearer ')) {
-            token = req.headers.authorization.split(' ')[1];
-        }
+        // Get token from cookie
+        const token = req.cookies.token;
 
         if (!token) {
-            res.status(401).json({
-                success: false,
-                error: 'Not authorized to access this route',
-            });
+            res.status(401).json({ success: false, error: 'Not authorized - no token' });
             return;
         }
 
         // Verify token
-        const decoded = verifyToken(token);
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
 
-        if (!decoded) {
-            res.status(401).json({
-                success: false,
-                error: 'Invalid or expired token',
-            });
-            return;
-        }
-
-        // Get user from token
-        const user = await User.findById(decoded.id).select('-password');
+        // Find user by ID from token
+        const user = await User.findById(decoded.id);
 
         if (!user) {
-            res.status(404).json({
-                success: false,
-                error: 'User not found',
-            });
+            res.status(401).json({ success: false, error: 'Not authorized - user not found' });
             return;
         }
 
         // Attach user to request
-        (req as any).user = user;
+        req.user = user;
         next();
     } catch (error) {
-        // Only log actual errors, not just 401/404s which are expected flows
-        if ((error as any).message !== 'Not authorized') {
-            // console.error('Auth middleware error:', error); 
-        }
-        res.status(401).json({
-            success: false,
-            error: 'Invalid or expired token',
-        });
+        console.error('Auth middleware error:', error);
+        res.status(401).json({ success: false, error: 'Not authorized - invalid token' });
     }
 };

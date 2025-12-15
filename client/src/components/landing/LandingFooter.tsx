@@ -8,7 +8,7 @@ export default function LandingFooter() {
                             <path d="M4.5 4.5a3 3 0 00-3 3v9a3 3 0 003 3h8.25a3 3 0 003-3v-9a3 3 0 00-3-3H4.5zM19.94 18.75l-2.69-2.69V7.94l2.69-2.69c.94-.94 2.56-.27 2.56 1.06v11.38c0 1.33-1.62 2-2.56 1.06z" />
                         </svg>
                     </div>
-                    <span className="font-bold text-gray-300">Meet.io</span>
+                    <span className="font-bold text-gray-300">Meet-io</span>
                 </div>
 
                 <div className="flex gap-8 text-sm text-gray-500">
@@ -18,7 +18,7 @@ export default function LandingFooter() {
                     <a href="#" className="hover:text-white transition-colors">GitHub</a>
                 </div>
 
-                <p className="text-gray-600 text-sm">© 2025 Meet.io Inc.</p>
+                <p className="text-gray-600 text-sm">© 2025 Meet-io Inc.</p>
             </div>
         </footer>
     );
