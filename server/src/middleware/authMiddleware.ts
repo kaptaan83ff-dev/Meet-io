@@ -26,8 +26,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
  */
 export const protect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        // Get token from cookie
-        const token = req.cookies.token;
+        // Get token from cookie or header
+        let token = req.cookies.token;
+
+        // Check Authorization header (Bearer token) if cookie is missing
+        if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            token = req.headers.authorization.split(' ')[1];
+        }
 
         if (!token) {
             res.status(401).json({ success: false, error: 'Not authorized - no token' });

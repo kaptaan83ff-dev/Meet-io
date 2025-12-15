@@ -21,7 +21,14 @@ const api = axios.create({
 // Add request interceptor for debugging (optional)
 api.interceptors.request.use(
     (config) => {
-        console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
+        // console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
+
+        // Add Bearer token if available
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
         return config;
     },
     (error) => {

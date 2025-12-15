@@ -62,17 +62,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     useEffect(() => {
         const checkAuth = async () => {
             try {
+                const token = localStorage.getItem('token');
+                const headers: any = { credentials: 'include' };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
                 const res = await fetch(`${API_URL}/auth/me`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
                     credentials: 'include', // Send cookies
                 });
                 const data = await res.json();
 
                 if (data.success) {
                     setUser(data.user);
+                } else {
+                    localStorage.removeItem('token'); // Invalid token
                 }
             } catch (error) {
                 // User not logged in, that's okay
                 console.log('Not authenticated');
+                localStorage.removeItem('token');
             } finally {
                 setLoading(false);
             }
@@ -99,6 +109,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             throw new Error(data.error);
         }
 
+        if (data.token) {
+            localStorage.setItem('token', data.token);
+        }
+
         setUser(data.user);
         toast.success(`Welcome, ${data.user.name}!`);
     };
@@ -121,6 +135,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             throw new Error(data.error);
         }
 
+        if (data.token) {
+            localStorage.setItem('token', data.token);
+        }
+
         setUser(data.user);
         toast.success(`Welcome back, ${data.user.name}!`);
     };
@@ -129,11 +147,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
      * Logout user
      */
     const logout = async () => {
-        await fetch(`${API_URL}/auth/logout`, {
-            method: 'POST',
-            credentials: 'include',
-        });
+        try {
+            await fetch(`${API_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include',
+            });
+        } catch (error) {
+            // ignore
+        }
 
+        localStorage.removeItem('token');
         setUser(null);
         toast.success('Logged out successfully');
     };
