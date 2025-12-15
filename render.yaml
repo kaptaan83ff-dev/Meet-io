@@ -12,13 +12,13 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: CLIENT_URL
-        fromService:
-          type: static
-          name: meet-io-client
-          property: url
       # You will need to add these manually in the Render Dashboard:
+      # - CLIENT_URL (The URL of your static site, e.g. https://meet-io-client.onrender.com)
       # - MONGODB_URI
+      # - LIVEKIT_API_KEY
+      # - LIVEKIT_API_SECRET
+      # - LIVEKIT_URL
+      # - REDIS_URL (Optional)
       # - LIVEKIT_API_KEY
       # - LIVEKIT_API_SECRET
       # - LIVEKIT_URL
