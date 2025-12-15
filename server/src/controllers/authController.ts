@@ -40,6 +40,7 @@ const sendTokenResponse = (user: any, statusCode: number, res: Response) => {
     // Set cookie and send response
     res.cookie('token', token, cookieOptions).status(statusCode).json({
         success: true,
+        token, // Return token for localStorage fallback
         user: {
             _id: user._id,
             name: user.name,
@@ -141,8 +142,15 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        // Check if there's a token to return (for client syncing)
+        let token = req.cookies.token;
+        if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+
         res.status(200).json({
             success: true,
+            token, // Return current token so client can sync localStorage
             user: {
                 _id: user._id,
                 name: user.name,
