@@ -34,11 +34,8 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: meet-io-server
-          property: url
+      # You must add this manually in the Render Dashboard (Environment Variables for this service):
+      # - VITE_API_URL (The URL of your server, e.g. https://meet-io-server.onrender.com)
     routes:
       - type: rewrite
         source: /**
