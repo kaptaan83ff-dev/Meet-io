@@ -10,6 +10,7 @@ interface ChatPanelProps {
     userId: string;
     userName: string;
     messages: ChatMessage[];
+    className?: string;
 }
 
 export default function ChatPanel({
@@ -18,7 +19,8 @@ export default function ChatPanel({
     roomId,
     userId,
     userName,
-    messages
+    messages,
+    className = ''
 }: ChatPanelProps) {
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -53,15 +55,18 @@ export default function ChatPanel({
 
     return (
         <div className={`
+            ${className || `
             fixed md:absolute inset-0 md:inset-auto
             md:right-4 md:top-4 md:bottom-4 
             w-full md:w-80
             bg-[#1a1f2e]/95 backdrop-blur-xl 
             rounded-none md:rounded-2xl 
             border-0 md:border md:border-white/10
-            shadow-2xl flex flex-col z-50 overflow-hidden
+            shadow-2xl 
+            `}
+            flex flex-col z-50 overflow-hidden
             transform transition-transform duration-300 ease-in-out
-            ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+            ${!className && (isOpen ? 'translate-x-0' : 'translate-x-full')}
         `}>
             {/* Header */}
             <div className="flex items-center justify-between p-4 sm:p-4 border-b border-white/10">

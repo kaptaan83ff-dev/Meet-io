@@ -293,73 +293,98 @@ function MeetingContent({
     };
 
     return (
-        <div className="relative h-screen w-full bg-[#1e2a3a] overflow-hidden">
-            {/* Top Bar */}
-            <MeetingTopBar
-                meetingTitle={meetingTitle}
-                meetingCode={roomId}
-            />
-
-            {/* Floating Reactions */}
-            <FloatingReactions reactions={floatingReactions} />
-
-            {/* Video Grid - Adjusts width when panels are open */}
-            <div
-                className={`
-                    absolute inset-0 pt-20 pb-32 transition-all duration-300
-                    ${(isChatOpen || isParticipantsOpen) ? 'md:right-[336px]' : 'right-0'}
-                `}
-            >
-                {localParticipant && (
-                    <VideoGrid
-                        participants={participants}
-                        localParticipant={localParticipant}
-                        raisedHands={raisedHands}
-                    />
-                )}
+        <div className="flex flex-col h-screen w-full bg-[#1e2a3a] overflow-hidden font-['Inter']">
+            {/* Top Bar - Fixed height */}
+            <div className="flex-none z-10">
+                <MeetingTopBar
+                    meetingTitle={meetingTitle}
+                    meetingCode={roomId}
+                />
             </div>
 
-            {/* Control Bar */}
-            <ControlBar
-                isMicEnabled={isMicEnabled}
-                isCameraEnabled={isCameraEnabled}
-                isScreenSharing={isScreenSharing}
-                isHandRaised={isHandRaised}
-                onToggleMic={toggleMic}
-                onToggleCamera={toggleCamera}
-                onToggleScreenShare={toggleScreenShare}
-                onToggleHand={toggleHand}
-                isChatOpen={isChatOpen}
-                isParticipantsOpen={isParticipantsOpen}
-                onToggleChat={() => setIsChatOpen(!isChatOpen)}
-                onToggleParticipants={() => setIsParticipantsOpen(!isParticipantsOpen)}
-                participantCount={participants.length}
-                pendingCount={pendingParticipants.length}
-                onReaction={handleReaction}
-                onLeave={onLeave}
-                meetingCode={roomId}
-            />
+            {/* Main Content Area - Grow to fill space */}
+            <div className="flex-1 flex overflow-hidden relative">
 
-            {/* Chat Panel */}
-            <ChatPanel
-                isOpen={isChatOpen}
-                onClose={() => setIsChatOpen(false)}
-                roomId={roomId}
-                userId={userId}
-                userName={userName}
-                messages={chatMessages}
-            />
+                {/* Floating Reactions Layer */}
+                <FloatingReactions reactions={floatingReactions} />
 
-            {/* Participants Panel */}
-            <ParticipantList
-                isOpen={isParticipantsOpen}
-                onClose={() => setIsParticipantsOpen(false)}
-                participants={participants}
-                pendingParticipants={pendingParticipants}
-                isHost={isHost}
-                onAdmit={onAdmit}
-                onDeny={onDeny}
-            />
+                {/* Video Grid Area */}
+                <div className="flex-1 relative flex flex-col">
+                    <div className="flex-1 p-4 overflow-hidden flex items-center justify-center">
+                        {localParticipant && (
+                            <VideoGrid
+                                participants={participants}
+                                localParticipant={localParticipant}
+                                raisedHands={raisedHands}
+                            />
+                        )}
+                    </div>
+                    {/* Control Bar Spacer - if needed, or overlay */}
+                </div>
+
+                {/* Side Panels - Flex items that squeeze the video area */}
+                {/* We use a transition-width approach for smoothness */}
+                <div
+                    className={`
+                        transition-[width,opacity] duration-300 ease-in-out bg-[#1a1f2e] border-l border-white/10
+                        ${(isChatOpen || isParticipantsOpen) ? 'w-80 opacity-100' : 'w-0 opacity-0 overflow-hidden border-none'}
+                        flex flex-col
+                    `}
+                >
+                    {isChatOpen && (
+                        <ChatPanel
+                            isOpen={true} // Always "open" internally, container handles visibility
+                            onClose={() => setIsChatOpen(false)}
+                            roomId={roomId}
+                            userId={userId}
+                            userName={userName}
+                            messages={chatMessages}
+                            className="h-full static w-full shadow-none bg-transparent" // Override fixed positioning
+                        />
+                    )}
+                    {isParticipantsOpen && (
+                        <ParticipantList
+                            isOpen={true}
+                            onClose={() => setIsParticipantsOpen(false)}
+                            participants={participants}
+                            pendingParticipants={pendingParticipants}
+                            isHost={isHost}
+                            onAdmit={onAdmit}
+                            onDeny={onDeny}
+                            className="h-full static w-full shadow-none bg-transparent" // Override fixed positioning
+                        />
+                    )}
+                </div>
+            </div>
+
+            {/* Control Bar - Fixed Bottom */}
+            <div className="flex-none z-20">
+                <ControlBar
+                    isMicEnabled={isMicEnabled}
+                    isCameraEnabled={isCameraEnabled}
+                    isScreenSharing={isScreenSharing}
+                    isHandRaised={isHandRaised}
+                    onToggleMic={toggleMic}
+                    onToggleCamera={toggleCamera}
+                    onToggleScreenShare={toggleScreenShare}
+                    onToggleHand={toggleHand}
+                    isChatOpen={isChatOpen}
+                    isParticipantsOpen={isParticipantsOpen}
+                    onToggleChat={() => {
+                        setIsChatOpen(!isChatOpen);
+                        if (!isChatOpen) setIsParticipantsOpen(false); // Close others
+                    }}
+                    onToggleParticipants={() => {
+                        setIsParticipantsOpen(!isParticipantsOpen);
+                        if (!isParticipantsOpen) setIsChatOpen(false); // Close others
+                    }}
+                    participantCount={participants.length}
+                    pendingCount={pendingParticipants.length}
+                    onReaction={handleReaction}
+                    onLeave={onLeave}
+                    meetingCode={roomId}
+                />
+            </div>
         </div>
     );
 }

@@ -21,6 +21,7 @@ export const generateToken = async (
             {
                 identity: userId, // Unique identifier for the participant
                 name: participantName, // Display name (optional)
+                metadata: JSON.stringify({ displayName: participantName }),
             }
         );
 

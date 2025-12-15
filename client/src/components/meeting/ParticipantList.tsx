@@ -9,6 +9,7 @@ interface ParticipantListProps {
     isHost: boolean;
     onAdmit: (userId: string, userName: string) => void;
     onDeny: (userId: string, userName: string) => void;
+    className?: string;
 }
 
 export default function ParticipantList({
@@ -19,8 +20,23 @@ export default function ParticipantList({
     isHost,
     onAdmit,
     onDeny,
+    className = ''
 }: ParticipantListProps) {
     const [activeTab, setActiveTab] = useState<'in-meeting' | 'waiting'>('in-meeting');
+
+    // Helper to get display name
+    const getDisplayName = (p: Participant) => {
+        let displayName = p.name;
+        if (!displayName && p.metadata) {
+            try {
+                const meta = JSON.parse(p.metadata);
+                displayName = meta.displayName;
+            } catch (e) {
+                // ignore
+            }
+        }
+        return displayName || p.identity || 'Unknown';
+    };
 
     // Auto-switch to waiting tab if new people join and panel is open
     useEffect(() => {
@@ -32,15 +48,18 @@ export default function ParticipantList({
 
     return (
         <div className={`
+            ${className || `
             fixed md:absolute inset-0 md:inset-auto
             md:right-4 md:top-20 md:bottom-24
             w-full md:w-80
             bg-[#1a1f2e]/95 backdrop-blur-xl 
             border-0 md:border md:border-white/10
             rounded-none md:rounded-2xl 
-            overflow-hidden flex flex-col shadow-2xl z-50
+            shadow-2xl z-50
+            `}
+            overflow-hidden flex flex-col
             transform transition-transform duration-300 ease-in-out
-            ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+            ${!className && (isOpen ? 'translate-x-0' : 'translate-x-full')}
         `}>
             {/* Header */}
             <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
@@ -96,14 +115,14 @@ export default function ParticipantList({
                             <div key={p.sid} className="flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-colors group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white relative">
-                                        {p.identity?.charAt(0).toUpperCase() || '?'}
+                                        {getDisplayName(p).charAt(0).toUpperCase()}
                                         {/* Status Dot */}
                                         <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#1a1f2e] ${p.isSpeaking ? 'bg-green-500' : 'bg-gray-400'
                                             }`} />
                                     </div>
                                     <div>
                                         <div className="text-sm font-medium text-white flex items-center gap-2">
-                                            {p.identity || 'Unknown'}
+                                            {getDisplayName(p)}
                                             {p.isLocal && <span className="text-xs text-gray-500">(You)</span>}
                                         </div>
                                         <div className="text-xs text-gray-400">

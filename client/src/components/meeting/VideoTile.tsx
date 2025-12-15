@@ -36,7 +36,17 @@ export default function VideoTile({ participant, isHandRaised = false, isLocal =
     const audioTrack = participant.getTrackPublication(Track.Source.Microphone)?.track;
 
     // Get participant name (or identity as fallback)
-    const name = participant.name || participant.identity || 'Guest';
+    // Parse metadata for display name fallback
+    let displayName = participant.name;
+    if (!displayName && participant.metadata) {
+        try {
+            const meta = JSON.parse(participant.metadata);
+            displayName = meta.displayName;
+        } catch (e) {
+            // ignore
+        }
+    }
+    const name = displayName || participant.identity || 'Guest';
     const initial = name.charAt(0).toUpperCase();
 
     return (
@@ -48,7 +58,7 @@ export default function VideoTile({ participant, isHandRaised = false, isLocal =
             {isCameraEnabled && videoTrack ? (
                 <VideoTrack
                     trackRef={{ participant, source: Track.Source.Camera, publication: participant.getTrackPublication(Track.Source.Camera)! }}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-black"
                 />
             ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2d3748] to-[#1a202c]">
