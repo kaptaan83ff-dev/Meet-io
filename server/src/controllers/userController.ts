@@ -305,8 +305,8 @@ export const revokeSession = async (req: Request, res: Response) => {
             return;
         }
 
-        const initialLength = user.sessions.length;
-        user.sessions = user.sessions.filter(s => s._id && s._id.toString() !== sessionId);
+        const initialLength = user.sessions?.length || 0;
+        user.sessions = (user.sessions || []).filter(s => s._id && s._id.toString() !== sessionId);
 
         if (user.sessions.length === initialLength) {
             res.status(404).json({ success: false, error: 'Session not found' });
